@@ -125,6 +125,6 @@ class BaselineProfileGenerator {
     }
 
     private companion object {
-        const val APP_PACKAGE = "chromahub.rhythm.app"
+        const val APP_PACKAGE = "vn.laho.musicplayer"
     }
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
 <string name="home">Home</string>
     <string name="library">Library</string>
     <string name="search">Search</string>
@@ -340,7 +340,7 @@
     <string name="settings_about_report_bug">Report Bug or Suggest Feature</string>
 
 <string name="status_disabled">Disabled</string>
-<string name="home_title">Rhythm</string>
+<string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">Settings</string>
     <string name="home_no_featured_albums">No Featured Albums</string>
     <string name="home_no_featured_albums_desc">Add some albums to your library to see featured content</string>
@@ -903,7 +903,7 @@
     <string name="cd_reorder_chips">Reorder chips</string>
     <string name="cd_search">Search</string>
     <string name="cd_view_all">View all</string>
-    <string name="cd_rhythm_splash">Rhythm</string>
+    <string name="cd_rhythm_splash">LaHo Music Player</string>
     <string name="cd_remove_from_playlist">Remove from playlist</string>
     <string name="cd_change_language">Change Language</string>
     <string name="cd_open_settings">Open</string>
@@ -2404,7 +2404,7 @@
     <string name="carousel_style_hero_desc">1 side peek album</string>
 
     <!-- Widget preview sample text (launcher picker previews only, not user-facing copy) -->
-    <string name="widget_preview_brand" translatable="false">Rhythm</string>
+    <string name="widget_preview_brand" translatable="false">LaHo Music Player</string>
     <string name="widget_preview_title" translatable="false">Midnight Drive</string>
     <string name="widget_preview_subtitle" translatable="false">Neon Waves</string>
     <string name="widget_preview_lyric_active" translatable="false">Forever running through the night</string>

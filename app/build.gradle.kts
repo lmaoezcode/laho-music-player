@@ -26,7 +26,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "chromahub.rhythm.app"
+        applicationId = "vn.laho.musicplayer"
         minSdk = 26
         targetSdk = 37
         
@@ -60,7 +60,7 @@ android {
     productFlavors {
         create("fdroid") {
             dimension = "distribution"
-            applicationId = "chromahub.rhythm.app"
+            applicationId = "vn.laho.musicplayer"
             
             // F-Droid build: Enable all features (FOSS ethos)
             buildConfigField("boolean", "ENABLE_YOUTUBE_MUSIC", "true")
@@ -77,7 +77,7 @@ android {
         
         create("github") {
             dimension = "distribution"
-            applicationId = "chromahub.rhythm.app"
+            applicationId = "vn.laho.musicplayer"
             
             // GitHub releases: Enable all features (same as F-Droid)
             buildConfigField("boolean", "ENABLE_YOUTUBE_MUSIC", "true")
@@ -216,7 +216,7 @@ androidComponents {
                 ?: ""
 
             output.outputFileName.set(
-                "Rhythm-${android.defaultConfig.versionName}-${variant.name}${abiSuffix}.apk"
+                "LaHo-${android.defaultConfig.versionName}-${variant.name}${abiSuffix}.apk"
             )
         }
     }

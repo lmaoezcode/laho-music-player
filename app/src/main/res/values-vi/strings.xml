@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">Trình phát nhạc LaHo</string>
     <!-- Common Labels -->
     <string name="home">Trang chủ</string>
     <string name="library">Thư viện</string>
@@ -293,7 +293,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">Bị vô hiệu hóa</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">Trình phát nhạc LaHo</string>
     <string name="home_settings_cd">Cài đặt</string>
     <string name="home_no_featured_albums">Không có album nổi bật</string>
     <string name="home_no_featured_albums_desc">Thêm một số album vào thư viện của bạn để xem nội dung nổi bật</string>

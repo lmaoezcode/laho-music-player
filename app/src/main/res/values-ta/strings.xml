@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">வீடு</string>
     <string name="library">நூலகம்</string>
@@ -302,7 +302,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">ஊனமுற்றவர்</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">அமைப்புகள்</string>
     <string name="home_no_featured_albums">சிறப்பு ஆல்பங்கள் இல்லை</string>
     <string name="home_no_featured_albums_desc">பிரத்யேக உள்ளடக்கத்தைப் பார்க்க உங்கள் நூலகத்தில் சில ஆல்பங்களைச் சேர்க்கவும்</string>

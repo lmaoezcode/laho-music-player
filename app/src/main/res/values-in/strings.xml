@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">Rumah</string>
     <string name="library">Perpustakaan</string>
@@ -293,7 +293,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">Dinonaktifkan</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">Pengaturan</string>
     <string name="home_no_featured_albums">Tidak Ada Album Unggulan</string>
     <string name="home_no_featured_albums_desc">Tambahkan beberapa album ke perpustakaan Anda untuk melihat konten unggulan</string>

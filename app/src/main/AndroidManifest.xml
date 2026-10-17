@@ -109,7 +109,7 @@
         <receiver
             android:name=".infrastructure.widget.glance.RhythmLyricsWidgetReceiver"
             android:exported="true"
-            android:label="Rhythm Lyrics"
+            android:label="LaHo Lyrics"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -123,7 +123,7 @@
         <receiver
             android:name=".infrastructure.widget.glance.RhythmCookieWidgetReceiver"
             android:exported="true"
-            android:label="Rhythm Cookie"
+            android:label="LaHo Cookie"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -137,7 +137,7 @@
         <receiver
             android:name=".infrastructure.widget.glance.RhythmStatsWidgetReceiver"
             android:exported="true"
-            android:label="Rhythm Stats"
+            android:label="LaHo Stats"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

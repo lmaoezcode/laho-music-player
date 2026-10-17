@@ -20,3 +20,7 @@ private.properties.base64
 
 /app/release
 /.config
+
+# Firebase config (LaHo): keep out of the public repo
+app/google-services.json
+app/src/*/google-services.json

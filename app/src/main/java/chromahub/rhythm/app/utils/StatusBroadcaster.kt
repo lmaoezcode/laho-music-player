@@ -5,6 +5,7 @@
 
 package chromahub.rhythm.app.utils
 
+import chromahub.rhythm.app.BuildConfig
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -53,7 +54,7 @@ class StatusBroadcaster(private val context: Context) {
 
         private const val DEFAULT_BLUETOOTH_LYRIC_LINE = "No lyrics"
         
-        private const val PACKAGE_NAME = "chromahub.rhythm.app"
+        private const val PACKAGE_NAME = BuildConfig.APPLICATION_ID
     }
     
     /**

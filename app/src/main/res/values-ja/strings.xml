@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">ホーム</string>
     <string name="library">ライブラリー</string>
@@ -293,7 +293,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">無効</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">設定</string>
     <string name="home_no_featured_albums">注目のアルバムはありません</string>
     <string name="home_no_featured_albums_desc">ライブラリにアルバムを追加して、注目のコンテンツを表示します</string>

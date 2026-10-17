@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">الصفحة الرئيسية</string>
     <string name="library">المكتبة</string>
@@ -338,7 +338,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">معطل</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">الإعدادات</string>
     <string name="home_no_featured_albums">لا توجد ألبومات مميزة</string>
     <string name="home_no_featured_albums_desc">أضف بعض الألبومات إلى مكتبتك لرؤية المحتوى المميز</string>

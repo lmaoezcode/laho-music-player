@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">Dom</string>
     <string name="library">Biblioteka</string>
@@ -320,7 +320,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">Wyłączone</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">Ustawienia</string>
     <string name="home_no_featured_albums">Brak polecanych albumów</string>
     <string name="home_no_featured_albums_desc">Dodaj kilka albumów do swojej biblioteki, aby zobaczyć polecaną zawartość</string>

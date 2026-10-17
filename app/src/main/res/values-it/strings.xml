@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">Casa</string>
     <string name="library">Biblioteca</string>
@@ -311,7 +311,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">Disabilitato</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">Impostazioni</string>
     <string name="home_no_featured_albums">Nessun album in primo piano</string>
     <string name="home_no_featured_albums_desc">Aggiungi alcuni album alla tua libreria per vedere i contenuti in primo piano</string>

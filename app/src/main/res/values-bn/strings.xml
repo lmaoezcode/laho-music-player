@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">বাড়ি</string>
     <string name="library">লাইব্রেরি</string>
@@ -302,7 +302,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">অক্ষম</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">সেটিংস</string>
     <string name="home_no_featured_albums">কোনো বৈশিষ্ট্যযুক্ত অ্যালবাম নেই</string>
     <string name="home_no_featured_albums_desc">বৈশিষ্ট্যযুক্ত বিষয়বস্তু দেখতে আপনার লাইব্রেরিতে কিছু অ্যালবাম যোগ করুন</string>

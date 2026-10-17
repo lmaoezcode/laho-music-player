@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Rhythm</string>
+    <string name="app_name">LaHo Music Player</string>
     <!-- Common Labels -->
     <string name="home">บ้าน</string>
     <string name="library">ห้องสมุด</string>
@@ -293,7 +293,7 @@
     <!-- Status Labels -->
     <string name="status_disabled">พิการ</string>
     <!-- HomeScreen -->
-    <string name="home_title">Rhythm</string>
+    <string name="home_title">LaHo Music Player</string>
     <string name="home_settings_cd">การตั้งค่า</string>
     <string name="home_no_featured_albums">ไม่มีอัลบั้มเด่น</string>
     <string name="home_no_featured_albums_desc">เพิ่มอัลบั้มลงในห้องสมุดของคุณเพื่อดูเนื้อหาเด่น</string>
