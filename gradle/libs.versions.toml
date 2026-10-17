@@ -2,6 +2,10 @@
 agp = "9.4.1"
 kotlin = "2.4.21"
 ksp = "2.3.6"
+# LaHo: Firebase AI Logic (Gemini) + App Check
+firebaseBom = "35.0.1"
+googleServices = "4.5.0"
+kotlinxSerializationJson = "1.8.1"
 coreKtx = "1.19.1"
 core = "1.19.1"
 splashscreen = "1.2.0"
@@ -45,6 +49,13 @@ window = "1.5.1"
 reorderables = "3.1.0"
 
 [libraries]
+# LaHo: Firebase AI Logic (Gemini) + App Check
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity" }
+firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
+# JSON types used in firebase-ai function-calling APIs (same version firebase-ai resolves)
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-window = { group = "androidx.window", name = "window", version.ref = "window" }
 taglib = { group = "io.github.kyant0", name = "taglib", version.ref = "taglib" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -119,5 +130,6 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "macrobenchmark" }
 

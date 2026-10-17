@@ -19,6 +19,15 @@ plugins {
     // the baseline-prof.txt file are sufficient.
     id("kotlin-parcelize")
 //    alias(libs.plugins.kotlin.serialization)
+    // LaHo: Firebase (Gemini assistant). google-services.json lives in src/debug/ (not in git).
+    alias(libs.plugins.google.services)
+}
+
+// LaHo: builds without a matching google-services.json (release, CI, F-Droid) still succeed;
+// the online assistant is then simply unavailable at runtime.
+googleServices {
+    missingGoogleServicesStrategy =
+        com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy.WARN
 }
 
 android {
@@ -223,6 +232,13 @@ androidComponents {
 }
 
 dependencies {
+    // LaHo: Gemini via Firebase AI Logic, protected by App Check
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.ai)
+    implementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
+    implementation(libs.kotlinx.serialization.json)
+
     implementation(libs.androidx.compose.ui.unit)
     // Desugaring library
     coreLibraryDesugaring(libs.androidx.desugar.jdk.libs)

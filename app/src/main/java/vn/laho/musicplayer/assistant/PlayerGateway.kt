@@ -9,6 +9,7 @@ data class LibrarySong(
     val title: String,
     val artist: String,
     val album: String,
+    val genre: String? = null,
 )
 
 data class NowPlaying(val title: String, val artist: String, val isPlaying: Boolean)

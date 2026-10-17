@@ -67,13 +67,20 @@ data class ChatMessage(val fromUser: Boolean, val text: String, val source: Assi
 
 class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     private val gateway = MediaControllerGateway(app)
-    private val engine = AssistantEngine(ToolRegistry.default(gateway))
+    private val gemini = vn.laho.musicplayer.assistant.online.GeminiAssistant.createOrNull(app)
+    private val engine = AssistantEngine(ToolRegistry.default(gateway), online = gemini)
 
     val messages = mutableStateListOf(
         ChatMessage(
             fromUser = false,
-            text = "Xin chào! Mình là trợ lý LaHo (chế độ offline). Thử nói hoặc gõ: " +
-                "\"bài tiếp\", \"tạm dừng\", \"to lên\", \"âm lượng 40\", \"phát bài …\", \"nhạc của …\".",
+            text = if (gemini != null) {
+                "Xin chào! Mình là trợ lý LaHo. Lệnh cơ bản (\"bài tiếp\", \"tạm dừng\", \"to lên\", " +
+                    "\"phát bài …\") chạy offline; yêu cầu khác như \"bật nhạc buồn\" hay " +
+                    "\"nhạc để tập gym\" sẽ hỏi Gemini (cần mạng)."
+            } else {
+                "Xin chào! Mình là trợ lý LaHo (chỉ offline trong bản này). Thử nói hoặc gõ: " +
+                    "\"bài tiếp\", \"tạm dừng\", \"to lên\", \"âm lượng 40\", \"phát bài …\", \"nhạc của …\"."
+            },
         ),
     )
     var busy by mutableStateOf(false)

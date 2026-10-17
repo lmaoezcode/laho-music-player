@@ -39,6 +39,7 @@ class ToolRegistry(tools: List<AssistantTool>) {
                 SetVolumeTool(player),
                 SearchAndPlayTool(player),
                 NowPlayingTool(player),
+                LibraryOverviewTool(player),
             ),
         )
     }

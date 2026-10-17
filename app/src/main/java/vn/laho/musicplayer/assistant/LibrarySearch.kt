@@ -11,10 +11,17 @@ package vn.laho.musicplayer.assistant
  */
 object LibrarySearch {
 
-    fun search(songs: List<LibrarySong>, query: String?, artist: String? = null, limit: Int = 50): List<LibrarySong> {
+    fun search(
+        songs: List<LibrarySong>,
+        query: String?,
+        artist: String? = null,
+        limit: Int = 50,
+        genre: String? = null,
+    ): List<LibrarySong> {
         val queryTokens = query?.let { VietnameseText.tokens(it) }.orEmpty()
         val artistTokens = artist?.let { VietnameseText.tokens(it) }.orEmpty()
-        if (queryTokens.isEmpty() && artistTokens.isEmpty()) return emptyList()
+        val genreTokens = genre?.let { VietnameseText.tokens(it) }.orEmpty()
+        if (queryTokens.isEmpty() && artistTokens.isEmpty() && genreTokens.isEmpty()) return emptyList()
 
         val queryPhrase = queryTokens.joinToString(" ")
         return songs.asSequence()
@@ -24,6 +31,9 @@ object LibrarySearch {
                 val album = VietnameseText.tokens(song.album)
 
                 if (artistTokens.isNotEmpty() && !containsAll(artistNames, artistTokens)) return@mapNotNull null
+                if (genreTokens.isNotEmpty() &&
+                    !containsAll(VietnameseText.tokens(song.genre.orEmpty()), genreTokens)
+                ) return@mapNotNull null
                 if (queryTokens.isNotEmpty() && !queryTokens.all { it in title || it in artistNames || it in album }) {
                     return@mapNotNull null
                 }

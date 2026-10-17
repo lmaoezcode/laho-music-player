@@ -9,4 +9,5 @@ plugins {
     // Note: kotlin.android is NOT listed here — AGP 9.0+ has built-in Kotlin support
     // and applying kotlin.android would throw "no longer required since AGP 9.0".
     alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.google.services) apply false // LaHo: Firebase
 }

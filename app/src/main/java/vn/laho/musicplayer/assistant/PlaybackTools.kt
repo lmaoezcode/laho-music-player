@@ -63,26 +63,36 @@ class SearchAndPlayTool(private val player: PlayerGateway) : AssistantTool {
     override val parameters = listOf(
         ToolParameter("query", ToolParameter.Type.STRING, "Tên bài hát, album hoặc từ khoá"),
         ToolParameter("artist", ToolParameter.Type.STRING, "Tên nghệ sĩ (nếu người dùng nói 'nhạc của ...')"),
+        ToolParameter(
+            "genre",
+            ToolParameter.Type.STRING,
+            "Thể loại, dùng đúng tên thể loại có trong thư viện (xem get_library_overview)",
+        ),
     )
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
         val query = args.stringArg("query")
         val artist = args.stringArg("artist")
-        if (query == null && artist == null) return ToolResult.fail("Bạn muốn nghe bài gì?")
+        val genre = args.stringArg("genre")
+        if (query == null && artist == null && genre == null) return ToolResult.fail("Bạn muốn nghe bài gì?")
 
         val library = player.librarySongs()
         if (library.isEmpty()) return ToolResult.fail("Thư viện nhạc đang trống. Hãy quét nhạc trước.")
 
-        var matches = LibrarySearch.search(library, query, artist)
+        var matches = LibrarySearch.search(library, query, artist, genre = genre)
         if (matches.isEmpty()) {
             // Spoken requests often end in words like "đi"/"nha" that may or may not belong
             // to the title ("Em Đi", "Về Nhà"); only drop them when the literal search fails.
             val q2 = query?.let(::dropTrailingFillers)
             val a2 = artist?.let(::dropTrailingFillers)
-            if (q2 != query || a2 != artist) matches = LibrarySearch.search(library, q2, a2)
+            if (q2 != query || a2 != artist) matches = LibrarySearch.search(library, q2, a2, genre = genre)
         }
         if (matches.isEmpty()) {
-            val what = listOfNotNull(query?.let { "\"$it\"" }, artist?.let { "của $it" }).joinToString(" ")
+            val what = listOfNotNull(
+                query?.let { "\"$it\"" },
+                artist?.let { "của $it" },
+                genre?.let { "thể loại $it" },
+            ).joinToString(" ")
             return ToolResult.fail("Không tìm thấy bài nào $what trong thư viện.")
         }
 
@@ -106,6 +116,52 @@ class SearchAndPlayTool(private val player: PlayerGateway) : AssistantTool {
 
     private companion object {
         val TRAILING_FILLERS = setOf("di", "nha", "voi", "nao", "ne", "a", "len", "cai", "luon", "thu")
+    }
+}
+
+/**
+ * Summarises the local library (artists, genres) so an LLM can pick music for a mood or
+ * activity using names that actually exist, instead of guessing titles.
+ */
+class LibraryOverviewTool(private val player: PlayerGateway) : AssistantTool {
+    override val name = "get_library_overview"
+    override val description =
+        "Xem tổng quan thư viện nhạc trên máy: số bài, các nghệ sĩ và thể loại có nhiều bài nhất, " +
+            "kèm vài tên bài mẫu. Dùng trước khi chọn nhạc theo tâm trạng/hoạt động."
+    override val parameters = listOf(
+        ToolParameter("limit", ToolParameter.Type.INTEGER, "Số nghệ sĩ/thể loại tối đa trả về (mặc định 25)"),
+    )
+
+    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+        val limit = (args.intArg("limit") ?: DEFAULT_LIMIT).coerceIn(1, MAX_LIMIT)
+        val songs = player.librarySongs()
+        if (songs.isEmpty()) return ToolResult.fail("Thư viện nhạc đang trống.")
+
+        fun top(key: (LibrarySong) -> String?) = songs
+            .mapNotNull { key(it)?.trim()?.takeIf { s -> s.isNotEmpty() && !s.startsWith("<unknown", true) } }
+            .groupingBy { it }.eachCount()
+            .entries.sortedByDescending { it.value }
+            .take(limit)
+            .map { "${it.key} (${it.value})" }
+
+        val artists = top { it.artist }
+        val genres = top { it.genre }
+        val samples = songs.shuffled(kotlin.random.Random(songs.size)).take(SAMPLE_TITLES).map { "${it.title} – ${it.artist}" }
+        return ToolResult.ok(
+            "Thư viện có ${songs.size} bài, ${artists.size} nghệ sĩ hàng đầu, ${genres.size} thể loại.",
+            mapOf(
+                "songCount" to songs.size,
+                "topArtists" to artists,
+                "topGenres" to genres,
+                "sampleTitles" to samples,
+            ),
+        )
+    }
+
+    private companion object {
+        const val DEFAULT_LIMIT = 25
+        const val MAX_LIMIT = 100
+        const val SAMPLE_TITLES = 30
     }
 }
 
