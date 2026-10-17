@@ -435,6 +435,11 @@ class RhythmPlayerEngine(
             HiFiCapabilityChecker.isSupported() &&
             !hasActiveProcessors
 
+        // LaHo: float DSP sink. Disabled in bit-perfect ("app" routing) mode, where no DSP
+        // may touch the signal.
+        val useLahoDsp = appSettings.lahoDspEnabled.value &&
+            appSettings.audioRoutingMode.value != "app"
+
         val mediaCodecSelector = MediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
             val defaultDecoders = MediaCodecSelector.DEFAULT.getDecoderInfos(
                 mimeType,
@@ -505,10 +510,16 @@ class RhythmPlayerEngine(
                     }
                 }
                 val baseSink = DefaultAudioSink.Builder(context)
-                    .setEnableFloatOutput(floatOutputPref)
+                    .setEnableFloatOutput(floatOutputPref || useLahoDsp)
                     .setEnableAudioOutputPlaybackParameters(true)
                     .setAudioProcessorChain(processorChain)
                     .build()
+
+                if (useLahoDsp) {
+                    // The LaHo sink always hands float PCM to baseSink, so Media3 skips the
+                    // legacy 16-bit processor chain; the LaHo PEQ replaces the system EQ.
+                    return vn.laho.musicplayer.dsp.LahoDspController.createSink(baseSink, appSettings)
+                }
 
                 return if (replayGainProcessor != null) {
                     object : ForwardingAudioSink(baseSink) {

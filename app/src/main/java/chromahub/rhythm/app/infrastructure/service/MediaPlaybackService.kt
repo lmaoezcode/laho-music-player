@@ -3647,6 +3647,11 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
     }
     
     fun setEqualizerBandLevel(band: Short, level: Short) {
+        if (vn.laho.musicplayer.dsp.LahoDspController.isActive) {
+            // LaHo DSP owns the EQ; keep the platform equalizer flat.
+            applyEqualizerPreset(FloatArray(vn.laho.musicplayer.dsp.PeqConfig.GRAPHIC_EQ_FREQUENCIES.size))
+            return
+        }
         try {
             val bandLevelsString = appSettings.equalizerBandLevels.value
             val bandLevels = bandLevelsString.split(",").mapNotNull { it.toFloatOrNull() }
@@ -3734,7 +3739,14 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
         return isBassBoostAvailable
     }
     
-    fun applyEqualizerPreset(levels: FloatArray) {
+    fun applyEqualizerPreset(requestedLevels: FloatArray) {
+        // LaHo: when the float DSP sink is active it applies the EQ itself (from
+        // AppSettings), so the platform equalizer must stay flat to avoid double EQ.
+        val levels = if (vn.laho.musicplayer.dsp.LahoDspController.isActive) {
+            FloatArray(requestedLevels.size)
+        } else {
+            requestedLevels
+        }
         try {
             if (equalizer == null) {
                 Log.w(TAG, "Equalizer is null when applying preset, queuing pending levels and ensuring init")

@@ -17,6 +17,10 @@ contributors.
   "LaHo Music Player" (Vietnamese: "Trình phát nhạc LaHo"); APK file prefix
   changed to `LaHo-`. The Kotlin source package (`chromahub.rhythm.app`) is kept
   for now to make merging upstream fixes easier.
+- 2026-10-18: added the LaHo 32-bit float DSP pipeline (`vn.laho.musicplayer.dsp`:
+  parametric EQ, PCM-to-float sink, AutoEQ preset parser) and hooked it into
+  `RhythmPlayerEngine`, `MediaPlaybackService`, `AppSettings` and the external
+  capabilities settings screen.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

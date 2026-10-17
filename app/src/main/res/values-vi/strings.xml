@@ -2539,4 +2539,6 @@
         <item quantity="other">%1$d danh sách phát</item>
     </plurals>
     <string name="duration_minutes_format">%1$d phút</string>
+    <string name="settings_laho_dsp">LaHo DSP (EQ số thực 32-bit)</string>
+    <string name="settings_laho_dsp_desc">Chạy bộ cân bằng âm trong chuỗi xử lý số thực 32-bit, giữ nguyên chất lượng nhạc hi-res. Thay thế equalizer của hệ thống; tăng bass, âm thanh vòm, mono và ReplayGain không áp dụng ở chế độ này. Tự tắt khi bật bit-perfect. Khởi động lại app để áp dụng.</string>
 </resources>
