@@ -2839,6 +2839,9 @@
     <string name="settings_audio_engine_prefer_hw_desc">Prioritize on-chip hardware codecs over software emulation</string>
     <string name="settings_audio_engine_float_output">32-Bit PCM Float Output</string>
     <string name="settings_audio_engine_float_output_desc">Deliver full dynamic floating-point audio to supported hardware when software DSP effects and variable speed/pitch are inactive</string>
+    <string name="laho_assistant_title">LaHo Assistant</string>
+    <string name="laho_assistant_entry">LaHo Assistant (experimental)</string>
+    <string name="laho_assistant_entry_desc">Control playback by text or voice: next, pause, volume, play a song from your library. Works offline.</string>
     <string name="settings_audio_engine_manage_decoders">Audio Decoders</string>
     <string name="settings_audio_engine_reset">Reset Decoders</string>
     <string name="settings_audio_engine_reset_desc">Re-enable all platform and hardware audio decoders</string>

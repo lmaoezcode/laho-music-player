@@ -211,6 +211,24 @@ fun ExternalCapabilitiesSettingsScreen(
                                 }
                             ),
                             hapticFeedback = haptics
+                        ),
+                        // LaHo: experimental assistant (spike 3)
+                        toMaterial3SettingsItem(
+                            context = context,
+                            item = SettingItem(
+                                icon = MaterialSymbolIcon("graphic_eq", filled = true),
+                                title = stringResource(R.string.laho_assistant_entry),
+                                description = stringResource(R.string.laho_assistant_entry_desc),
+                                onClick = {
+                                    context.startActivity(
+                                        android.content.Intent(
+                                            context,
+                                            vn.laho.musicplayer.assistant.AssistantActivity::class.java
+                                        )
+                                    )
+                                }
+                            ),
+                            hapticFeedback = haptics
                         )
                     )
 

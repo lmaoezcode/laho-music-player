@@ -191,6 +191,14 @@
             android:theme="@style/Theme.Rhythm"
             android:launchMode="singleTop" />
 
+        <!-- LaHo: experimental assistant chat (spike 3) -->
+        <activity
+            android:name="vn.laho.musicplayer.assistant.AssistantActivity"
+            android:exported="false"
+            android:label="@string/laho_assistant_title"
+            android:theme="@style/Theme.Rhythm"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".activities.MainActivity"
             android:exported="true"
