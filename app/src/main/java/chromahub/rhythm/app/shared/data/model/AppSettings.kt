@@ -144,6 +144,8 @@ class AppSettings private constructor(context: Context) {
         private const val KEY_AUDIO_ENGINE_PREFER_HARDWARE = "audio_engine_prefer_hardware"
         private const val KEY_AUDIO_ENGINE_FLOAT_OUTPUT = "audio_engine_float_output"
         private const val KEY_AUDIO_ENGINE_FLOAT_OUTPUT_MIGRATED = "audio_engine_float_output_v2_migrated"
+        // LaHo: 32-bit float DSP pipeline (vn.laho.musicplayer.dsp)
+        private const val KEY_LAHO_DSP_ENABLED = "laho_dsp_enabled"
         private const val KEY_AUDIO_ENGINE_DISABLED_DECODERS = "audio_engine_disabled_decoders"
         private const val KEY_DECODER_EXTENSIONS_ENABLED = "audio_decoder_extensions_enabled"
         private const val KEY_DISABLED_DECODER_EXTENSIONS = "audio_disabled_decoder_extensions"
@@ -765,6 +767,10 @@ class AppSettings private constructor(context: Context) {
         }
     )
     val audioEngineFloatOutput: StateFlow<Boolean> = _audioEngineFloatOutput.asStateFlow()
+
+    // LaHo: route playback through the 32-bit float DSP sink (takes effect on next app start)
+    private val _lahoDspEnabled = MutableStateFlow(prefs.getBoolean(KEY_LAHO_DSP_ENABLED, false))
+    val lahoDspEnabled: StateFlow<Boolean> = _lahoDspEnabled.asStateFlow()
 
     private val _audioEngineDisabledDecoders = MutableStateFlow(prefs.getStringSet(KEY_AUDIO_ENGINE_DISABLED_DECODERS, emptySet())?.toSet() ?: emptySet())
     val audioEngineDisabledDecoders: StateFlow<Set<String>> = _audioEngineDisabledDecoders.asStateFlow()
@@ -2415,6 +2421,11 @@ private val _autoCheckForUpdates = MutableStateFlow(prefs.getBoolean(KEY_AUTO_CH
             putBoolean(KEY_AUDIO_ENGINE_FLOAT_OUTPUT_MIGRATED, true)
         }
         _audioEngineFloatOutput.value = enable
+    }
+
+    fun setLahoDspEnabled(enable: Boolean) {
+        prefs.edit { putBoolean(KEY_LAHO_DSP_ENABLED, enable) }
+        _lahoDspEnabled.value = enable
     }
 
     fun setAudioEngineDisabledDecoders(disabledSet: Set<String>) {

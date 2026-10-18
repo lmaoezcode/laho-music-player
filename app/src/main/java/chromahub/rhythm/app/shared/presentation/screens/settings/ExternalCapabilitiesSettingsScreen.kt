@@ -76,6 +76,7 @@ fun ExternalCapabilitiesSettingsScreen(
     val softwareEngineEnabled by appSettings.audioEngineSoftwareEnabled.collectAsState()
     val preferHardware by appSettings.audioEnginePreferHardware.collectAsState()
     val floatOutput by appSettings.audioEngineFloatOutput.collectAsState()
+    val lahoDspEnabled by appSettings.lahoDspEnabled.collectAsState()
     val disabledDecoders by appSettings.audioEngineDisabledDecoders.collectAsState()
 
     val allDecoders = remember(context) { DeviceCapabilitiesProvider.getAudioDecoders() }
@@ -208,6 +209,21 @@ fun ExternalCapabilitiesSettingsScreen(
                                 onToggleChange = {
                                     HapticUtils.performHapticFeedback(context, haptics, HapticType.LIGHT)
                                     appSettings.setAudioEngineFloatOutput(it)
+                                }
+                            ),
+                            hapticFeedback = haptics
+                        ),
+                        // LaHo: 32-bit float DSP pipeline
+                        toMaterial3SettingsItem(
+                            context = context,
+                            item = SettingItem(
+                                icon = MaterialSymbolIcon("graphic_eq", filled = true),
+                                title = stringResource(R.string.settings_laho_dsp),
+                                description = stringResource(R.string.settings_laho_dsp_desc),
+                                toggleState = lahoDspEnabled,
+                                onToggleChange = {
+                                    HapticUtils.performHapticFeedback(context, haptics, HapticType.LIGHT)
+                                    appSettings.setLahoDspEnabled(it)
                                 }
                             ),
                             hapticFeedback = haptics
