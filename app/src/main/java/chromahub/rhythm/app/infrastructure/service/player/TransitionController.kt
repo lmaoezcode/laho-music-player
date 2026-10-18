@@ -228,7 +228,7 @@ class TransitionController(
             appSettings.crossfade.collect { enabled ->
                 Log.d(TAG, "Crossfade setting changed: $enabled")
                 if (!isInDestructiveState()) {
-                    if (enabled) {
+                    if (enabled && engine.isCrossfadeAllowed()) {
                         engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
                     } else {
                         cancelPendingTransition()
@@ -240,7 +240,7 @@ class TransitionController(
         scope.launch {
             appSettings.crossfadeDuration.collect { duration ->
                 Log.d(TAG, "Crossfade duration changed: $duration s")
-                if (!isInDestructiveState() && appSettings.crossfade.value) {
+                if (!isInDestructiveState() && engine.isCrossfadeAllowed()) {
                     engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
                 }
             }
@@ -248,7 +248,7 @@ class TransitionController(
         scope.launch {
             appSettings.crossfadeRepeatOne.collect { repeatOne ->
                 Log.d(TAG, "Crossfade repeat-one setting changed: $repeatOne")
-                if (!isInDestructiveState() && appSettings.crossfade.value) {
+                if (!isInDestructiveState() && engine.isCrossfadeAllowed()) {
                     engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
                 }
             }
@@ -351,7 +351,7 @@ class TransitionController(
             }
 
             // Check if crossfade is globally enabled
-            val isCrossfadeEnabled = appSettings.crossfade.value
+            val isCrossfadeEnabled = engine.isCrossfadeAllowed()
             if (!isCrossfadeEnabled) {
                 Log.d(TAG, "Crossfade globally disabled. Using default gap.")
                 engine.setPauseAtEndOfMediaItems(false)
@@ -497,7 +497,7 @@ class TransitionController(
         transitionSchedulerJob?.cancel()
 
         // Check if crossfade is globally enabled
-        val isCrossfadeEnabled = appSettings.crossfade.value
+        val isCrossfadeEnabled = engine.isCrossfadeAllowed()
         if (!isCrossfadeEnabled) {
             Log.d(TAG, "Crossfade globally disabled. Skipping seek transition handling.")
             engine.cancelNext()

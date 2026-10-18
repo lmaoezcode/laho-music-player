@@ -37,6 +37,18 @@ The AGPL proof-of-concept app in upstream `driver/Felicity/` is **not** included
   (buffer underrun). The interval is now read in `UsbAudioDevice`, carried through
   `UsbAudioDeviceInfo` / `UsbAudioStream` to `nativeUsbAudioCreate`, and the packetizer
   uses `fpmf × microframesPerPacket`.
+- **Fix: track switches stalling for >1.5 s after a rate change.** `drainAllUrbs`
+  waited up to 500 ms per URB in phase 1 and up to 500 ms in phase 3 even when no more
+  completions could arrive (seen on the Sonata BHD: 70/80 URBs reaped over 1 s, then a
+  500 ms empty wait). Phase 1 now has a 250 ms overall deadline (the full ring is at most
+  160 ms of audio) with 50 ms per reap, and phase 3 stops after 20 ms without a completion;
+  the remaining URBs are discarded as before.
+- **Fix: playback error on MP3 → FLAC switches.** The muted `DefaultAudioSink` delegate never
+  receives PCM in USB mode, so its `TrimmingAudioProcessor` was configured with the MP3's
+  encoder delay/padding but never flushed with a valid format; the next `reset()` threw
+  `NegativeArraySizeException` in `TrimmingAudioProcessor.onFlush` (Media3 1.11) and the
+  player stopped. `UsbAudioSink` now strips `encoderDelay`/`encoderPadding` from the format
+  it forwards to the delegate (the delegate's output is discarded anyway).
 - CMake: `HAVE_FSEEKO=1` for the libFLAC target so 32-bit ABIs build (libFLAC's own
   check forces it off and `compat.h` then clashes with bionic's `fseeko`).
 
@@ -45,6 +57,12 @@ The AGPL proof-of-concept app in upstream `driver/Felicity/` is **not** included
 | Phone | Android | DAC | Result |
 |---|---|---|---|
 | Xiaomi 11 Ultra (M2102K1C) | 12 (API 31) | Tempotec Sonata BHD (bInterval=2) | Bit-perfect 44.1 / 48 kHz, FLAC 16/24-bit (native engine) and MP3 (FFmpeg path), clean after the bInterval fix. The DAC's feedback endpoint did not answer, so the nominal rate is used. |
+
+LaHo app side (not vendored code): `RhythmPlayerEngine` crossfades by swapping its two
+ExoPlayers, but only player A owns the USB sink. A swap handed playback to player B (no USB
+sink: silence) and left the USB sink on the paused "next" player, which is why track
+switches were silent or slow. Crossfade is therefore disabled while the LaHo USB driver is
+active (`RhythmPlayerEngine.isCrossfadeAllowed()`).
 
 Clone with submodules: `git clone --recurse-submodules …` or
 `git submodule update --init third_party/flac`.
