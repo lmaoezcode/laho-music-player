@@ -13,6 +13,8 @@ data class UsbAudioDeviceInfo(
     val endpointOutAddress: Int,
     val endpointFeedbackAddress: Int,
     val maxPacketSize: Int,
+    /** LaHo: raw bInterval of the ISO OUT endpoint (high-speed: 2^(bInterval-1) microframes per packet). */
+    val endpointOutInterval: Int = 1,
     val altSettingCount: Int,
     val clockSourceId: Int,
     val bestAltSetting: Int,

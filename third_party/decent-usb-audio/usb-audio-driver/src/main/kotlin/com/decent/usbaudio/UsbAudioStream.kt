@@ -41,7 +41,9 @@ class UsbAudioStream(
         sampleRate: Int,
         channelCount: Int,
         bitDepth: Int,
-        maxPacketSize: Int
+        maxPacketSize: Int,
+        /** LaHo: raw bInterval of the ISO OUT endpoint (1 = every microframe). */
+        endpointInterval: Int = 1
 ) {
 
     /** Native UsbAudioContext pointer. Exposed for NativeAudioEngine which
@@ -52,7 +54,7 @@ class UsbAudioStream(
     init {
         nativeHandle = nativeUsbAudioCreate(
                 fd, interfaceId, endpointOut, endpointFeedback,
-                sampleRate, channelCount, bitDepth, maxPacketSize
+                sampleRate, channelCount, bitDepth, maxPacketSize, endpointInterval
         )
         if (nativeHandle == 0L) {
             Log.e(TAG, "nativeUsbAudioCreate returned 0 — check logcat for native errors")
@@ -188,7 +190,8 @@ class UsbAudioStream(
 
     private external fun nativeUsbAudioCreate(
             fd: Int, interfaceId: Int, endpointOut: Int, endpointFeedback: Int,
-            sampleRate: Int, channelCount: Int, bitDepth: Int, maxPacketSize: Int
+            sampleRate: Int, channelCount: Int, bitDepth: Int, maxPacketSize: Int,
+            endpointInterval: Int
     ): Long
 
     private external fun nativeUsbAudioSetAltSetting(handle: Long, altSetting: Int): Boolean

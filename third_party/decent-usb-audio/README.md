@@ -30,6 +30,21 @@ The AGPL proof-of-concept app in upstream `driver/Felicity/` is **not** included
   for Media3 1.11.
 - Removed `SftpDataSource` / `DecentDataSourceFactory` (SFTP streaming with
   plain-text passwords in URIs; pulled in JSch and the Media3 cache/database).
+- **Fix: honour the ISO OUT endpoint's `bInterval`.** Upstream sized every packet
+  for one microframe (`rate / 8000` frames). High-speed ISO endpoints send one packet
+  every `2^(bInterval-1)` microframes, so DACs with `bInterval=2` (verified: Tempotec
+  Sonata BHD, `22e1:f008`) received half the samples and played with constant dropouts
+  (buffer underrun). The interval is now read in `UsbAudioDevice`, carried through
+  `UsbAudioDeviceInfo` / `UsbAudioStream` to `nativeUsbAudioCreate`, and the packetizer
+  uses `fpmf × microframesPerPacket`.
+- CMake: `HAVE_FSEEKO=1` for the libFLAC target so 32-bit ABIs build (libFLAC's own
+  check forces it off and `compat.h` then clashes with bionic's `fseeko`).
+
+## Verified hardware
+
+| Phone | Android | DAC | Result |
+|---|---|---|---|
+| Xiaomi 11 Ultra (M2102K1C) | 12 (API 31) | Tempotec Sonata BHD (bInterval=2) | Bit-perfect 44.1 / 48 kHz, FLAC 16/24-bit (native engine) and MP3 (FFmpeg path), clean after the bInterval fix. The DAC's feedback endpoint did not answer, so the nominal rate is used. |
 
 Clone with submodules: `git clone --recurse-submodules …` or
 `git submodule update --init third_party/flac`.

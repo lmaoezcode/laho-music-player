@@ -73,6 +73,7 @@ struct UsbAudioContext {
     int32_t bytesPerSample;
     int32_t bytesPerFrame;
     int32_t maxPacketSize;
+    int32_t microframesPerPacket;  // LaHo: 2^(bInterval-1) for high-speed ISO endpoints
 
     std::atomic<bool> running;
 

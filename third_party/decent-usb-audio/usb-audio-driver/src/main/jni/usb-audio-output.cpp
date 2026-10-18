@@ -398,9 +398,13 @@ extern "C" {
 JNIEXPORT jlong JNICALL
 Java_com_decent_usbaudio_UsbAudioStream_nativeUsbAudioCreate(
         JNIEnv *, jobject, jint fd, jint ifId, jint epOut, jint epFb,
-        jint rate, jint ch, jint bits, jint maxPkt) {
-    LOGI("Create: fd=%d ep=0x%02x rate=%d ch=%d bits=%d maxPkt=%d",
-         fd, epOut, rate, ch, bits, maxPkt);
+        jint rate, jint ch, jint bits, jint maxPkt, jint interval) {
+    // LaHo: high-speed ISO endpoints transfer one packet every 2^(bInterval-1) microframes.
+    // The upstream code assumed bInterval=1; DACs with bInterval=2 (e.g. Tempotec Sonata
+    // BHD) then received half the samples they need.
+    int microframesPerPacket = (interval >= 1 && interval <= 4) ? (1 << (interval - 1)) : 1;
+    LOGI("Create: fd=%d ep=0x%02x rate=%d ch=%d bits=%d maxPkt=%d bInterval=%d (%d uframe/pkt)",
+         fd, epOut, rate, ch, bits, maxPkt, interval, microframesPerPacket);
     auto *ctx = new(std::nothrow) UsbAudioContext();
     if (!ctx) return 0;
     ctx->fd = fd;
@@ -413,6 +417,7 @@ Java_com_decent_usbaudio_UsbAudioStream_nativeUsbAudioCreate(
     ctx->bytesPerSample = bits / 8;
     ctx->bytesPerFrame = (bits / 8) * ch;
     ctx->maxPacketSize = maxPkt;
+    ctx->microframesPerPacket = microframesPerPacket;
     ctx->running.store(false);
     ctx->transferBuffer = nullptr;
     ctx->transferBufferCapacity = 0;
@@ -502,10 +507,10 @@ Java_com_decent_usbaudio_UsbAudioStream_nativeUsbAudioStart(
         submitFeedbackUrb(ctx);
     }
 
-    LOGI("Start: rate=%d ch=%d bits=%d ring=%d slots×%dpkt fpmf=%.4f feedback=%s",
+    LOGI("Start: rate=%d ch=%d bits=%d ring=%d slots×%dpkt fpmf=%.4f x%d uframe/pkt feedback=%s",
          ctx->sampleRate, ctx->channelCount, ctx->bitDepth,
          USB_AUDIO_NUM_URBS, USB_AUDIO_PACKETS_PER_URB,
-         ctx->calibratedFpmf,
+         ctx->calibratedFpmf, ctx->microframesPerPacket,
          ctx->feedbackInFlight ? "continuous" : "one-shot");
     return JNI_TRUE;
 }
@@ -714,7 +719,7 @@ void submitPcmToUrbs(UsbAudioContext *ctx, const uint8_t *pcmData, int totalByte
             int remaining = dataLen - offset - urbBytes;
             if (remaining <= 0) break;
 
-            ctx->frameAccumulator += fpmf;
+            ctx->frameAccumulator += fpmf * ctx->microframesPerPacket;  // LaHo: per packet, not per microframe
             int frames = (int)ctx->frameAccumulator;
             ctx->frameAccumulator -= frames;
             int b = frames * ctx->bytesPerFrame;
