@@ -2841,6 +2841,9 @@
     <string name="settings_audio_engine_float_output_desc">Deliver full dynamic floating-point audio to supported hardware when software DSP effects and variable speed/pitch are inactive</string>
     <string name="settings_laho_dsp">LaHo DSP (32-bit float EQ)</string>
     <string name="settings_laho_dsp_desc">Run the equalizer in a 32-bit float pipeline that keeps hi-res audio intact. Replaces the system equalizer; bass boost, virtualizer, mono and ReplayGain are not applied in this mode. Disabled in bit-perfect mode. Restart the app to apply.</string>
+    <string name="settings_laho_usb_driver">LaHo USB driver (bit-perfect, experimental)</string>
+    <string name="settings_laho_usb_driver_desc">Stream directly to a USB DAC with LaHo\'s own driver, bypassing the Android mixer: bit-perfect on Android 10+. Disables the equalizer, DSP effects and crossfade; other apps\' sound goes to the phone speaker while the DAC is in use. Restart the app to apply.</string>
+    <string name="settings_laho_usb_driver_unsupported">Requires Android 10 or newer.</string>
     <string name="laho_assistant_title">LaHo Assistant</string>
     <string name="laho_assistant_entry">LaHo Assistant (experimental)</string>
     <string name="laho_assistant_entry_desc">Control playback by text or voice: next, pause, volume, play a song from your library. Works offline.</string>

@@ -239,6 +239,9 @@ dependencies {
     debugImplementation(libs.firebase.appcheck.debug)
     implementation(libs.kotlinx.serialization.json)
 
+    // LaHo: bit-perfect USB DAC driver (third_party/decent-usb-audio, MIT)
+    implementation(project(":decent-usb-audio-wrapper-media3"))
+
     implementation(libs.androidx.compose.ui.unit)
     // Desugaring library
     coreLibraryDesugaring(libs.androidx.desugar.jdk.libs)

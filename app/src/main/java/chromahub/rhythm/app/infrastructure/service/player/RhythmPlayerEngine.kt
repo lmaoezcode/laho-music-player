@@ -329,7 +329,7 @@ class RhythmPlayerEngine(
         applyReplayGainSettingsOnProcessor(aReplayGain, appSettings.replayGain.value)
         applyReplayGainSettingsOnProcessor(bReplayGain, appSettings.replayGain.value)
 
-        playerA = buildPlayer(handleAudioFocus = false, bassProcessor = aBass, spatialProcessor = aSpatial, monoProcessor = aMono, replayGainProcessor = aReplayGain)
+        playerA = buildPlayer(handleAudioFocus = false, bassProcessor = aBass, spatialProcessor = aSpatial, monoProcessor = aMono, replayGainProcessor = aReplayGain, primary = true)
         playerB = buildPlayer(handleAudioFocus = false, bassProcessor = bBass, spatialProcessor = bSpatial, monoProcessor = bMono, replayGainProcessor = bReplayGain)
 
         val initVolume = if (appSettings.useSystemVolume.value) 1.0f else appSettings.appVolume.value
@@ -412,7 +412,9 @@ class RhythmPlayerEngine(
         bassProcessor: RhythmBassBoostProcessor? = null,
         spatialProcessor: RhythmSpatializationProcessor? = null,
         monoProcessor: RhythmMonoAudioProcessor? = null,
-        replayGainProcessor: ReplayGainAudioProcessor? = null
+        replayGainProcessor: ReplayGainAudioProcessor? = null,
+        // LaHo: only the primary (master) player may own the USB DAC sink
+        primary: Boolean = false
     ): ExoPlayer {
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(15_000, 30_000, 1_500, 2_500)
@@ -437,8 +439,12 @@ class RhythmPlayerEngine(
 
         // LaHo: float DSP sink. Disabled in bit-perfect ("app" routing) mode, where no DSP
         // may touch the signal.
+        // LaHo: userspace USB DAC driver (bit-perfect on Android 10+). Takes priority over the
+        // DSP, and only the primary player streams to the DAC.
+        val useLahoUsb = primary && vn.laho.musicplayer.usb.LahoUsbAudio.isEnabled(appSettings)
         val useLahoDsp = appSettings.lahoDspEnabled.value &&
-            appSettings.audioRoutingMode.value != "app"
+            appSettings.audioRoutingMode.value != "app" &&
+            !vn.laho.musicplayer.usb.LahoUsbAudio.isEnabled(appSettings)
 
         val mediaCodecSelector = MediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
             val defaultDecoders = MediaCodecSelector.DEFAULT.getDecoderInfos(
@@ -463,6 +469,9 @@ class RhythmPlayerEngine(
                 enableFloatOutput: Boolean,
                 enableAudioTrackPlaybackParams: Boolean
             ): androidx.media3.exoplayer.audio.AudioSink? {
+                if (useLahoUsb) {
+                    return vn.laho.musicplayer.usb.LahoUsbAudio.createSink(context)
+                }
                 val processors = mutableListOf<androidx.media3.common.audio.AudioProcessor>()
                 if (bassProcessor != null) {
                     processors.add(bassProcessor)
@@ -533,7 +542,9 @@ class RhythmPlayerEngine(
                 }
             }
         }.apply {
-            val extensionMode = if (appSettings.decoderExtensionsEnabled.value) {
+            // LaHo: the USB driver needs FFmpeg (float, 24-bit exact); platform decoders
+            // truncate 24-bit sources to 16-bit.
+            val extensionMode = if (useLahoUsb || appSettings.decoderExtensionsEnabled.value) {
                 DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
             } else {
                 DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
@@ -590,7 +601,9 @@ class RhythmPlayerEngine(
         val trackSelectionParameters = buildTrackSelectionParameters(defaultParams, appSettings)
 
         val player = ExoPlayer.Builder(context, renderersFactory)
-            .setLoadControl(loadControl)
+            .setLoadControl(
+                if (useLahoUsb) vn.laho.musicplayer.usb.LahoUsbAudio.wrapLoadControl(loadControl) else loadControl
+            )
             .setMediaSourceFactory(mediaSourceFactory)
             .setSeekBackIncrementMs(10_000L)
             .setSeekForwardIncrementMs(10_000L)
@@ -607,6 +620,10 @@ class RhythmPlayerEngine(
                     try { setPreferredAudioDevice(dev) } catch (e: Exception) { Log.w(TAG, "Failed to apply preferred device", e) }
                 }
             }
+
+        if (useLahoUsb) {
+            vn.laho.musicplayer.usb.LahoUsbAudio.attach(player)
+        }
 
         if (replayGainProcessor != null) {
             player.addListener(object : Player.Listener {

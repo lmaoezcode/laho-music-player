@@ -77,6 +77,7 @@ fun ExternalCapabilitiesSettingsScreen(
     val preferHardware by appSettings.audioEnginePreferHardware.collectAsState()
     val floatOutput by appSettings.audioEngineFloatOutput.collectAsState()
     val lahoDspEnabled by appSettings.lahoDspEnabled.collectAsState()
+    val lahoUsbDriverEnabled by appSettings.lahoUsbDriverEnabled.collectAsState()
     val disabledDecoders by appSettings.audioEngineDisabledDecoders.collectAsState()
 
     val allDecoders = remember(context) { DeviceCapabilitiesProvider.getAudioDecoders() }
@@ -224,6 +225,26 @@ fun ExternalCapabilitiesSettingsScreen(
                                 onToggleChange = {
                                     HapticUtils.performHapticFeedback(context, haptics, HapticType.LIGHT)
                                     appSettings.setLahoDspEnabled(it)
+                                }
+                            ),
+                            hapticFeedback = haptics
+                        ),
+                        // LaHo: userspace bit-perfect USB DAC driver
+                        toMaterial3SettingsItem(
+                            context = context,
+                            item = SettingItem(
+                                icon = MaterialSymbolIcon("graphic_eq", filled = true),
+                                title = stringResource(R.string.settings_laho_usb_driver),
+                                description = stringResource(
+                                    if (vn.laho.musicplayer.usb.LahoUsbAudio.isSupported) R.string.settings_laho_usb_driver_desc
+                                    else R.string.settings_laho_usb_driver_unsupported
+                                ),
+                                toggleState = lahoUsbDriverEnabled,
+                                enabled = vn.laho.musicplayer.usb.LahoUsbAudio.isSupported,
+                                onToggleChange = {
+                                    HapticUtils.performHapticFeedback(context, haptics, HapticType.LIGHT)
+                                    appSettings.setLahoUsbDriverEnabled(it)
+                                    if (it) vn.laho.musicplayer.usb.LahoUsbAudio.claimConnectedDac(context)
                                 }
                             ),
                             hapticFeedback = haptics

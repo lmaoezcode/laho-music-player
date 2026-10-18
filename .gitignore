@@ -24,3 +24,7 @@ private.properties.base64
 # Firebase config (LaHo): keep out of the public repo
 app/google-services.json
 app/src/*/google-services.json
+
+# LaHo: build output of the vendored USB driver modules
+third_party/decent-usb-audio/*/build/
+third_party/decent-usb-audio/*/.cxx/

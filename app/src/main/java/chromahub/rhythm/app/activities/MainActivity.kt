@@ -198,6 +198,9 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         appSettings = AppSettings.getInstance(applicationContext) // AppSettings already initialized in Application
+
+        // LaHo: claim the USB DAC as early as possible (before the kernel audio driver binds)
+        vn.laho.musicplayer.usb.LahoUsbAudio.onActivityIntent(applicationContext, intent, isLaunch = true)
         
         // We'll delay intent handling until after initialization
         val startupIntent = intent
@@ -778,6 +781,8 @@ class MainActivity : AppCompatActivity() {
     
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        // LaHo: DAC plugged in while the app is running
+        vn.laho.musicplayer.usb.LahoUsbAudio.onActivityIntent(applicationContext, intent, isLaunch = false)
         setIntent(intent)
         // Handle the new intent
         handleIntent(intent)

@@ -26,6 +26,12 @@ contributors.
   Firebase AI Logic with App Check, and an experimental chat screen; added the
   Firebase / google-services Gradle setup and an entry in the external
   capabilities settings screen.
+- 2026-10-18: added a userspace bit-perfect USB DAC driver: vendored the MIT
+  libraries of [decent-player](https://github.com/neonteamcc/decent-player) under
+  `third_party/decent-usb-audio` (ported to Media3 1.11, SFTP removed) and xiph/flac
+  1.5.0 as the `third_party/flac` submodule (BSD); glue in
+  `vn.laho.musicplayer.usb`, hooks in `RhythmPlayerEngine`, `MainActivity`,
+  `AppSettings`, the manifest and the external capabilities settings screen.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with
