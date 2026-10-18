@@ -2846,7 +2846,7 @@
     <string name="settings_laho_usb_driver_unsupported">Requires Android 10 or newer.</string>
     <string name="laho_assistant_title">LaHo Assistant</string>
     <string name="laho_assistant_entry">LaHo Assistant (experimental)</string>
-    <string name="laho_assistant_entry_desc">Control playback by text or voice: next, pause, volume, play a song from your library. Works offline.</string>
+    <string name="laho_assistant_entry_desc">Control playback by text or voice: next, pause, volume, play a song from your library, find and download music from Google Drive (/drive). Basic commands work offline.</string>
     <string name="settings_audio_engine_manage_decoders">Audio Decoders</string>
     <string name="settings_audio_engine_reset">Reset Decoders</string>
     <string name="settings_audio_engine_reset_desc">Re-enable all platform and hardware audio decoders</string>

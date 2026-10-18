@@ -20,6 +20,16 @@ class OfflineCommandParserTest {
     }
 
     @Test
+    fun driveSearchAndDownload() {
+        val search = { q: String -> ToolCall("drive_search", mapOf("query" to q)) }
+        assertParses(search("Lạc Trôi"), "tìm Lạc Trôi trên drive", "Tìm bài Lạc Trôi trên Google Drive nhé", "tai bai Lạc Trôi tu drive")
+        assertParses(search("Em Đi"), "tải bài Em Đi từ drive", "tải Em Đi từ Google Drive")
+        assertParses(ToolCall("drive_download", mapOf("file_id" to "2")), "tải số 2", "tải bài số 2", "tai 2")
+        assertParses(ToolCall("drive_download", mapOf("confirmed" to true)), "đồng ý tải", "xác nhận tải", "tải đi", "tải luôn")
+        assertNull(parser.parse("tìm Lạc Trôi"))
+    }
+
+    @Test
     fun next() = assertParses(
         control("next"),
         "bài tiếp", "Bài tiếp theo", "chuyển bài", "qua bài khác đi", "bỏ qua", "Next",

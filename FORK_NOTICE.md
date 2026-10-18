@@ -35,6 +35,11 @@ contributors.
 - 2026-10-18: added an automatic mood index (`vn.laho.musicplayer.mood`: offline
   audio features, Gemini classification, own Room database) and the assistant's
   `play_by_mood` tool.
+- 2026-10-18: added minimal Google Drive support (`vn.laho.musicplayer.drive`):
+  read-only Drive REST v3 client, authorization through Google Play services
+  (`play-services-auth`, `drive.readonly`, token kept in memory only), saving to
+  `Music/LaHo` via MediaStore, and the assistant tools `drive_search` /
+  `drive_download` (confirmation required) plus the `/drive` chat command.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

@@ -237,6 +237,8 @@ dependencies {
     implementation(libs.firebase.ai)
     implementation(libs.firebase.appcheck.playintegrity)
     debugImplementation(libs.firebase.appcheck.debug)
+    // LaHo: Google Drive authorization (drive.readonly) for the assistant
+    implementation(libs.play.services.auth)
     implementation(libs.kotlinx.serialization.json)
 
     // LaHo: bit-perfect USB DAC driver (third_party/decent-usb-audio, MIT)
