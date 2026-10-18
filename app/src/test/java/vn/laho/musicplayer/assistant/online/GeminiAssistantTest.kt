@@ -153,6 +153,21 @@ class GeminiAssistantTest {
     }
 
     @Test
+    fun markdownIsStrippedFromAnswers() = runBlocking {
+        assertEquals(
+            "Thư viện chỉ có nhạc Orchestral Pop (bài Over the Horizon của Samsung).",
+            GeminiAssistant.plainText("Thư viện chỉ có nhạc *Orchestral Pop* (bài **Over the Horizon** của Samsung)."),
+        )
+        assertEquals("Gợi ý:\nBallad\nLo-fi", GeminiAssistant.plainText("## Gợi ý:\n- Ballad\n* Lo-fi"))
+        assertEquals("Xem LaHo", GeminiAssistant.plainText("Xem [LaHo](https://example.com)"))
+        assertEquals("DJ_Snake giữ nguyên", GeminiAssistant.plainText("DJ_Snake giữ nguyên"))
+
+        val backend = ScriptedBackend(say("Chưa có nhạc *sôi động*, bạn muốn nghe `Ballad` không?"))
+        val reply = GeminiAssistant(backend).handle("nhạc tiệc", ToolRegistry.default(FakePlayer(LIBRARY)))
+        assertEquals("Chưa có nhạc sôi động, bạn muốn nghe Ballad không?", reply.text)
+    }
+
+    @Test
     fun defaultsToFlashLite() {
         assertEquals(GeminiAssistant.MODEL_FLASH_LITE, GeminiAssistant.DEFAULT_MODEL)
     }

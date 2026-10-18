@@ -113,10 +113,11 @@ class GeminiAssistant(
 
             val calls = modelTurn.parts.filterIsInstance<FunctionCallPart>()
             if (calls.isEmpty()) {
-                val answer = modelTurn.parts.filterIsInstance<TextPart>()
-                    .filterNot { it.isThought }
-                    .joinToString("") { it.text }.trim()
-                    .ifEmpty { lastResult?.message ?: "Xong." }
+                val answer = plainText(
+                    modelTurn.parts.filterIsInstance<TextPart>()
+                        .filterNot { it.isThought }
+                        .joinToString("") { it.text },
+                ).ifEmpty { lastResult?.message ?: "Xong." }
                 return AssistantReply(answer, AssistantReply.Source.ONLINE, lastCall, lastResult)
             }
 
@@ -220,11 +221,14 @@ class GeminiAssistant(
               chọn ngay thể loại hoặc nghệ sĩ phù hợp trong tóm tắt thư viện và gọi search_and_play
               (genre/artist/query). Chỉ gọi get_library_overview khi tóm tắt không đủ. Nếu không tìm
               thấy, thử tối đa 2 lựa chọn khác rồi báo lại.
-            - QUAN TRỌNG: chỉ phát khi thể loại/nghệ sĩ thật sự hợp với tâm trạng được yêu cầu.
-              Nếu thư viện không có nhạc phù hợp (ví dụ cần nhạc sôi động mà chỉ có nhạc nhẹ, hoặc
-              không có thông tin thể loại để biết), KHÔNG gọi search_and_play. Thay vào đó nói ngắn
-              gọn là chưa có nhạc hợp, nêu 1-2 thể loại/nghệ sĩ gần nhất đang có và hỏi người dùng
-              có muốn nghe không. Không bao giờ phát đại một bài chỉ vì nó là bài duy nhất.
+            - Chọn nhạc theo tâm trạng một cách linh hoạt: nếu có thể loại/nghệ sĩ hợp ở mức chấp
+              nhận được thì cứ phát (ví dụ Orchestral, Acoustic, Piano, Lo-fi, Ballad đều ổn cho
+              "nhẹ nhàng", "học bài", "thư giãn"; EDM, Dance, Rock, Pop sôi động ổn cho "tập gym",
+              "tiệc"). Chỉ KHÔNG phát khi nhạc rõ ràng trái ngược với yêu cầu (ví dụ cần nhạc sôi
+              động cho tiệc mà thư viện chỉ có nhạc chậm, nhẹ). Khi đó nói ngắn gọn là chưa có nhạc
+              hợp, nêu thể loại/nghệ sĩ gần nhất đang có và hỏi người dùng có muốn nghe không.
+            - Câu trả lời hiển thị dạng văn bản thuần: KHÔNG dùng markdown (không *, **, _, #, `,
+              không gạch đầu dòng). Tên bài đặt trong ngoặc kép "…".
             - Âm lượng dùng set_volume (level 0-100 hoặc delta).
             - Tính năng chưa có (ví dụ tải nhạc từ Google Drive, hẹn giờ tắt): nói rõ là chưa hỗ trợ,
               không gọi công cụ.
@@ -246,6 +250,22 @@ class GeminiAssistant(
             p.type == ToolParameter.Type.INTEGER -> Schema.integer(p.description)
             else -> Schema.string(p.description)
         }
+
+        private val MD_EMPHASIS = Regex("""(\*\*|__|\*|`+)""")
+        private val MD_LINE_PREFIX = Regex("""(?m)^[ \t]*(?:#{1,6}[ \t]+|[-*+•][ \t]+|>[ \t]*)""")
+        private val MD_LINK = Regex("""\[([^\]]+)]\([^)]*\)""")
+
+        /**
+         * Strips markdown the chat UI would show literally (`*bold*`, `# heading`, list
+         * bullets, links). Underscores inside words (e.g. artist names) are kept; only
+         * paired `__` is removed.
+         */
+        internal fun plainText(text: String): String = text
+            .replace(MD_LINK, "$1")
+            .replace(MD_LINE_PREFIX, "")
+            .replace(MD_EMPHASIS, "")
+            .replace(Regex("[ \\t]{2,}"), " ")
+            .trim()
 
         internal fun isQuotaError(e: Throwable): Boolean {
             val lower = (e.message ?: "").lowercase()
