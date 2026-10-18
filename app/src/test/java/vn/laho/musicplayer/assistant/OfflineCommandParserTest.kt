@@ -94,7 +94,27 @@ class OfflineCommandParserTest {
 
     @Test
     fun openEndedPlayRequestIsNotNowPlaying() {
-        // Not a "what's playing" question; becomes a library search (LLM will do better later).
-        assertEquals("search_and_play", parser.parse("phát bài gì đó vui vui")?.name)
+        // Not a "what's playing" question; with the mood index it is a mood request.
+        assertEquals(mood("vui"), parser.parse("phát bài gì đó vui vui"))
+    }
+
+    private fun mood(key: String) = ToolCall("play_by_mood", mapOf("mood" to key))
+
+    @Test
+    fun moodRequestsGoToTheMoodIndex() {
+        assertParses(mood("buon"), "bật nhạc buồn", "Bật nhạc buồn đi", "nhạc buồn", "phát vài bài buồn nhé", "phát bài buồn")
+        assertParses(mood("soi_dong"), "mở nhạc để tập gym", "cho tôi nghe nhạc sôi động", "bật playlist quẩy")
+        assertParses(mood("nhe_nhang"), "cho tôi nghe nhạc nhẹ nhàng để học bài", "mở mấy bài thư giãn", "nhạc dễ ngủ")
+        assertParses(mood("lang_man"), "phát nhạc lãng mạn")
+        assertParses(mood("tap_trung"), "bật nhạc tập trung")
+    }
+
+    @Test
+    fun songTitlesWithMoodWordsStayTitleSearches() {
+        assertParses(play("query" to "Vui Lên Đi"), "phát bài Vui Lên Đi")
+        // "của" is read as "by"; SearchAndPlayTool retries the whole phrase as a title.
+        assertParses(play("query" to "Buồn", "artist" to "Anh"), "mở bài hát Buồn Của Anh")
+        // Artist requests are not moods.
+        assertParses(play("artist" to "Sơn Tùng M-TP"), "phát nhạc của Sơn Tùng M-TP")
     }
 }

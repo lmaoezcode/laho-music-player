@@ -87,6 +87,10 @@ class SearchAndPlayTool(private val player: PlayerGateway) : AssistantTool {
             val a2 = artist?.let(::dropTrailingFillers)
             if (q2 != query || a2 != artist) matches = LibrarySearch.search(library, q2, a2, genre = genre)
         }
+        if (matches.isEmpty() && query != null && artist != null) {
+            // "Buồn Của Anh" is a title, not "Buồn" by "Anh": retry as one title query.
+            matches = LibrarySearch.search(library, "$query $artist", null, genre = genre)
+        }
         if (matches.isEmpty()) {
             val what = listOfNotNull(
                 query?.let { "\"$it\"" },
@@ -123,7 +127,10 @@ class SearchAndPlayTool(private val player: PlayerGateway) : AssistantTool {
  * Summarises the local library (artists, genres) so an LLM can pick music for a mood or
  * activity using names that actually exist, instead of guessing titles.
  */
-class LibraryOverviewTool(private val player: PlayerGateway) : AssistantTool {
+class LibraryOverviewTool(
+    private val player: PlayerGateway,
+    private val moodIndex: vn.laho.musicplayer.mood.MoodIndex? = null,
+) : AssistantTool {
     override val name = "get_library_overview"
     override val description =
         "Xem tổng quan thư viện nhạc trên máy: số bài, các nghệ sĩ và thể loại có nhiều bài nhất, " +
@@ -147,6 +154,8 @@ class LibraryOverviewTool(private val player: PlayerGateway) : AssistantTool {
         val artists = top { it.artist }
         val genres = top { it.genre }
         val samples = songs.shuffled(kotlin.random.Random(songs.size)).take(SAMPLE_TITLES).map { "${it.title} – ${it.artist}" }
+        val ids = songs.map { it.id }.toSet()
+        val moodIndexed = moodIndex?.profiles()?.count { it.songId in ids }
         return ToolResult.ok(
             "Thư viện có ${songs.size} bài, ${artists.size} nghệ sĩ hàng đầu, ${genres.size} thể loại.",
             mapOf(
@@ -154,6 +163,7 @@ class LibraryOverviewTool(private val player: PlayerGateway) : AssistantTool {
                 "topArtists" to artists,
                 "topGenres" to genres,
                 "sampleTitles" to samples,
+                "moodIndexed" to moodIndexed,
             ),
         )
     }

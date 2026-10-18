@@ -27,6 +27,9 @@ class OfflineCommandParser {
         val command = TRAILING_FILLERS.replace(foldedBody, "").trim()
         parseControl(command)?.let { return it }
 
+        // "bật nhạc buồn", "phát vài bài nhẹ nhàng để học", "nhạc tập gym" → mood index.
+        parseMoodPlay(foldedBody)?.let { return it }
+
         // "phát bài …": keep the rest verbatim (song titles may end in "đi", "nhà"…).
         return parsePlayQuery(body, foldedBody)
     }
@@ -51,6 +54,17 @@ class OfflineCommandParser {
         // "bài gì đây?" — but not "phát bài gì đó vui vui" (a request for the LLM).
         if (NOW_PLAYING.containsMatchIn(c) && !PLAY_QUERY.containsMatchIn(c)) return ToolCall("get_now_playing")
         return null
+    }
+
+    private fun parseMoodPlay(folded: String): ToolCall? {
+        val m = MOOD_REQUEST.find(folded) ?: return null
+        val kind = m.groupValues[1].trim()
+        val rest = TRAILING_FILLERS.replace(" " + m.groupValues[2], "").trim()
+        val mood = vn.laho.musicplayer.mood.Mood.findIn(rest) ?: return null
+        // "phát bài <X>" is normally a title search; only treat it as a mood when X is
+        // nothing but a mood word ("phát bài buồn"), so "phát bài Vui Lên Đi" stays a search.
+        if (kind in TITLE_KINDS && rest !in mood.phrases) return null
+        return ToolCall("play_by_mood", mapOf("mood" to mood.key))
     }
 
     private fun parsePlayQuery(body: String, foldedBody: String): ToolCall? {
@@ -139,6 +153,12 @@ class OfflineCommandParser {
                 "(?:cho (?:toi|minh|em)\\s+)?(?:nghe\\s+)?" +
                 "(?:(bai hat|bai|ca khuc|nhac|song|album)\\s+)?(.+)$",
         )
+        /** Optional verb, a music noun (group 1), then the description (group 2). */
+        private val MOOD_REQUEST = Regex(
+            "^(?:(?:bat|phat|mo|choi|nghe|play|cho (?:toi|minh|em) nghe)\\s+(?:cho (?:toi|minh|em)\\s+)?(?:nghe\\s+)?)?" +
+                "((?:mot )?(?:vai |may |it |nhung )?(?:bai hat|bai|nhac|ca khuc|playlist)(?: gi do| nao do)?)\\s+(.+)$",
+        )
+        private val TITLE_KINDS = setOf("bai", "bai hat", "ca khuc")
         private val ARTIST_SPLIT = Regex("(?:^|\\s)(?:cua|by)\\s+")
         private val GENERIC_WORDS = setOf("nhac", "bai", "bai hat", "ca khuc", "may bai", "vai bai", "cac bai")
     }

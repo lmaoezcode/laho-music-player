@@ -68,7 +68,12 @@ data class ChatMessage(val fromUser: Boolean, val text: String, val source: Assi
 class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     private val gateway = MediaControllerGateway(app)
     private val gemini = vn.laho.musicplayer.assistant.online.GeminiAssistant.createOrNull(app)
-    private val engine = AssistantEngine(ToolRegistry.default(gateway), online = gemini)
+    private val moodStore = vn.laho.musicplayer.mood.RoomMoodStore.get(app)
+    private val engine = AssistantEngine(
+        ToolRegistry.default(gateway, vn.laho.musicplayer.mood.MoodIndex { moodStore.all().mapNotNull { it.profile() } }),
+        online = gemini,
+    )
+    private var indexJob: kotlinx.coroutines.Job? = null
 
     val messages = mutableStateListOf(
         ChatMessage(
@@ -88,8 +93,18 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
 
     fun send(text: String) {
         val trimmed = text.trim()
+        if (trimmed.equals("/stop", ignoreCase = true) && indexJob?.isActive == true) {
+            messages += ChatMessage(fromUser = true, text = trimmed)
+            indexJob?.cancel()
+            return
+        }
         if (trimmed.isEmpty() || busy) return
         messages += ChatMessage(fromUser = true, text = trimmed)
+        if (trimmed.startsWith("/index", ignoreCase = true) || trimmed.startsWith("/mood", ignoreCase = true)) {
+            busy = true
+            moodCommand(trimmed.lowercase())
+            return
+        }
         busy = true
         if (trimmed.startsWith("/bench", ignoreCase = true)) {
             // "/bench" compares flash and flash-lite; "/bench lite" or "/bench flash" runs one.
@@ -107,6 +122,77 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             )
             messages += ChatMessage(fromUser = false, text = reply.text, source = reply.source)
             busy = false
+        }
+    }
+
+    /**
+     * Mood index commands: "/index" (analyse new songs; "/stop" cancels), "/mood" (status),
+     * "/mood export" (CSV for evaluation), "/mood reset" (forget everything).
+     */
+    private fun moodCommand(cmd: String) {
+        val ctx = getApplication<Application>()
+        when {
+            cmd.startsWith("/index") -> {
+                messages += ChatMessage(false, "Đang lập chỉ mục tâm trạng… (gõ /stop để dừng, chạy lại sẽ tiếp tục)")
+                val progressAt = messages.lastIndex
+                indexJob = viewModelScope.launch {
+                    val started = System.currentTimeMillis()
+                    try {
+                        val report = vn.laho.musicplayer.mood.AndroidMoodIndexing.indexer(ctx, moodStore).run { p ->
+                            val text = when (p.stage) {
+                                vn.laho.musicplayer.mood.IndexProgress.Stage.AUDIO ->
+                                    "Phân tích âm thanh ${p.done + 1}/${p.total}: ${p.current.orEmpty()}"
+                                vn.laho.musicplayer.mood.IndexProgress.Stage.LLM ->
+                                    "Gemini phân loại ${p.done}/${p.total} bài…"
+                                vn.laho.musicplayer.mood.IndexProgress.Stage.DONE -> "Hoàn tất."
+                            }
+                            messages[progressAt] = ChatMessage(false, text)
+                        }
+                        val secs = (System.currentTimeMillis() - started) / 1000
+                        val summary = "Chỉ mục tâm trạng xong sau ${secs}s: ${report.indexedWithMood}/${report.songs} bài có tâm trạng. " +
+                            "Âm thanh: ${report.analysed} bài mới phân tích, ${report.decodeFailures} bài không giải mã được. " +
+                            "Gemini: ${report.classified} bài phân loại" +
+                            (if (report.llmFailures > 0) ", ${report.llmFailures} bài lỗi (chạy lại /index để thử lại)." else ".") +
+                            " Thử: \"bật nhạc buồn\", \"nhạc tập gym\"."
+                        Log.i(TAG, summary)
+                        messages += ChatMessage(false, summary)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        messages += ChatMessage(false, "Đã dừng. Gõ /index để tiếp tục từ chỗ dừng.")
+                        throw e
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Mood indexing failed", e)
+                        messages += ChatMessage(false, "Lập chỉ mục lỗi: ${e.message}")
+                    } finally {
+                        busy = false
+                    }
+                }
+            }
+            cmd.startsWith("/mood export") -> viewModelScope.launch {
+                try {
+                    val f = vn.laho.musicplayer.mood.AndroidMoodIndexing.exportCsv(ctx, moodStore)
+                    messages += ChatMessage(false, "Đã xuất ${f.absolutePath}")
+                } finally {
+                    busy = false
+                }
+            }
+            cmd.startsWith("/mood reset") -> viewModelScope.launch {
+                moodStore.clear()
+                messages += ChatMessage(false, "Đã xoá chỉ mục tâm trạng.")
+                busy = false
+            }
+            else -> viewModelScope.launch {
+                val records = moodStore.all()
+                val profiles = records.mapNotNull { it.profile() }
+                val byMood = vn.laho.musicplayer.mood.Mood.values().joinToString(", ") { m ->
+                    "${m.label} ${profiles.count { m in it.moods }}"
+                }
+                messages += ChatMessage(
+                    false,
+                    "Chỉ mục: ${records.size} bài (${records.count { it.hasFeatures && it.featureError == null }} có đặc trưng âm thanh, " +
+                        "${records.count { it.hasVerdict }} đã qua Gemini). Theo nhãn: $byMood.",
+                )
+                busy = false
+            }
         }
     }
 

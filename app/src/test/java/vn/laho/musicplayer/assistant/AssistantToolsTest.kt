@@ -104,6 +104,14 @@ class AssistantToolsTest {
     }
 
     @Test
+    fun titleContainingCuaIsFoundWhenArtistSplitFails() = runBlocking {
+        val p = FakePlayer(LIBRARY + LibrarySong("8", "Buồn Của Anh", "K-ICM", "Single"))
+        val r = registry(p).execute(ToolCall("search_and_play", mapOf("query" to "Buồn", "artist" to "Anh")))
+        assertTrue(r.message, r.success)
+        assertEquals("Buồn Của Anh", p.queue.first().title)
+    }
+
+    @Test
     fun searchFailures() = runBlocking {
         assertFalse(registry(FakePlayer()).execute(ToolCall("search_and_play", mapOf("query" to "x"))).success)
         val r = registry(FakePlayer(LIBRARY))

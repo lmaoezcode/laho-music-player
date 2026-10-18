@@ -164,6 +164,12 @@ class GeminiAssistant(
                 ?.let { append("\nNghệ sĩ: ${it.joinToString(", ")}.") }
             (overview.data["sampleTitles"] as? List<*>)?.takeIf { it.isNotEmpty() }
                 ?.let { append("\nVài bài mẫu: ${it.take(SAMPLE_TITLES).joinToString("; ")}.") }
+            (overview.data["moodIndexed"] as? Number)?.toInt()?.let { n ->
+                append(
+                    if (n > 0) "\nChỉ mục tâm trạng: đã phân tích $n/${overview.data["songCount"]} bài (dùng play_by_mood)."
+                    else "\nChỉ mục tâm trạng: chưa có (play_by_mood chưa dùng được).",
+                )
+            }
         }
         librarySummary = text
         summaryAt = now
@@ -210,7 +216,7 @@ class GeminiAssistant(
         private const val SAMPLE_TITLES = 10
 
         /** Tools whose successful result is a complete answer (no rephrasing round needed). */
-        private val ACTION_TOOLS = setOf("playback_control", "set_volume", "search_and_play", "get_now_playing")
+        private val ACTION_TOOLS = setOf("playback_control", "set_volume", "search_and_play", "get_now_playing", "play_by_mood")
 
         private val SYSTEM_INSTRUCTION = """
             Bạn là trợ lý của ứng dụng nghe nhạc "LaHo Music Player" trên điện thoại.
@@ -218,8 +224,9 @@ class GeminiAssistant(
             - Chỉ hành động thông qua các công cụ được cung cấp; không giả vờ đã làm điều gì.
             - Nhạc chỉ phát từ thư viện trên máy (tóm tắt bên dưới). Không bịa tên bài.
             - Yêu cầu theo tâm trạng, cảm xúc hay hoạt động (buồn, vui, tập gym, học bài, ngủ…):
-              chọn ngay thể loại hoặc nghệ sĩ phù hợp trong tóm tắt thư viện và gọi search_and_play
-              (genre/artist/query). Chỉ gọi get_library_overview khi tóm tắt không đủ. Nếu không tìm
+              nếu có chỉ mục tâm trạng, gọi play_by_mood (mood, hoặc valence/arousal -100..100 cho
+              yêu cầu tinh tế như "hơi buồn nhưng vẫn có nhịp"). Nếu chưa có chỉ mục, chọn thể loại
+              hoặc nghệ sĩ phù hợp trong tóm tắt thư viện và gọi search_and_play (genre/artist/query). Chỉ gọi get_library_overview khi tóm tắt không đủ. Nếu không tìm
               thấy, thử tối đa 2 lựa chọn khác rồi báo lại.
             - Chọn nhạc theo tâm trạng một cách linh hoạt: nếu có thể loại/nghệ sĩ hợp ở mức chấp
               nhận được thì cứ phát (ví dụ Orchestral, Acoustic, Piano, Lo-fi, Ballad đều ổn cho

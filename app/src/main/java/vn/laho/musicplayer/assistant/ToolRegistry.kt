@@ -33,13 +33,15 @@ class ToolRegistry(tools: List<AssistantTool>) {
     }
 
     companion object {
-        fun default(player: PlayerGateway) = ToolRegistry(
-            listOf(
+        /** [moodIndex] enables play_by_mood (LaHo mood index); null when not available. */
+        fun default(player: PlayerGateway, moodIndex: vn.laho.musicplayer.mood.MoodIndex? = null) = ToolRegistry(
+            listOfNotNull(
                 PlaybackControlTool(player),
                 SetVolumeTool(player),
                 SearchAndPlayTool(player),
                 NowPlayingTool(player),
-                LibraryOverviewTool(player),
+                LibraryOverviewTool(player, moodIndex),
+                moodIndex?.let { PlayByMoodTool(player, it) },
             ),
         )
     }
