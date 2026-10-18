@@ -41,7 +41,7 @@ contributors.
   user-visible "Rhythm" product-name strings replaced with "LaHo" in all locales;
   the About screen and README credit Rhythm (GPL-3.0) by Anjishnu Nandi with a
   link to the upstream repository; network User-Agent / client names now say LaHo.
-  Drawable resource names (`rhythm_logo`, ...) and the update checker's upstream
+  Drawable resource names (`rhythm_logo`, ...)
   release feed are unchanged.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files

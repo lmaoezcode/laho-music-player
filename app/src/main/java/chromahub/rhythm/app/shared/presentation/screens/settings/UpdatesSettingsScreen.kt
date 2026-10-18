@@ -221,7 +221,7 @@ fun UpdatesSettingsScreen(onBackClick: () -> Unit) {
             knownIssues = listOf(
                 "Simulated sandbox mode overrides actual remote check updates."
             ),
-            downloadUrl = "https://github.com/cromaguy/Rhythm/releases",
+            downloadUrl = "https://github.com/lmaoezcode/laho-music-player/releases",
             apkAssetName = "rhythm-v3.2.0-beta.apk",
             apkSize = 18454937, // ~17.6 MB
             releaseNotes = "Simulated update notes",
@@ -894,9 +894,9 @@ fun UpdatesSettingsScreen(onBackClick: () -> Unit) {
                             HapticUtils.performHapticFeedback(context, haptics, HapticType.HEAVY)
                             val tag = currentVersion.versionName
                             val releaseUrl = if (tag.startsWith("v", ignoreCase = true)) {
-                                "https://github.com/cromaguy/Rhythm/releases/tag/$displayVersionName"
+                                "https://github.com/lmaoezcode/laho-music-player/releases/tag/$displayVersionName"
                             } else {
-                                "https://github.com/cromaguy/Rhythm/releases/tag/v$displayVersionName"
+                                "https://github.com/lmaoezcode/laho-music-player/releases/tag/v$displayVersionName"
                             }
                             try {
                                 val intent = Intent(Intent.ACTION_VIEW, (releaseUrl).toUri())
