@@ -91,13 +91,57 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         if (trimmed.isEmpty() || busy) return
         messages += ChatMessage(fromUser = true, text = trimmed)
         busy = true
+        if (trimmed.startsWith("/bench", ignoreCase = true)) {
+            // "/bench" compares flash and flash-lite; "/bench lite" or "/bench flash" runs one.
+            runBenchmark(trimmed.removePrefix("/bench").trim().lowercase())
+            return
+        }
         viewModelScope.launch {
             val started = System.nanoTime()
             val reply = engine.handle(trimmed)
             val ms = (System.nanoTime() - started) / 1_000_000
-            Log.i(TAG, "\"$trimmed\" -> ${reply.toolCall} [${reply.source}, ${ms} ms] ${reply.result?.success}")
+            val rounds = if (reply.source == AssistantReply.Source.OFFLINE) 0 else gemini?.lastModelRounds ?: 0
+            Log.i(
+                TAG,
+                "\"$trimmed\" -> ${reply.toolCall} [${reply.source}, ${ms} ms, $rounds model rounds] ${reply.result?.success}",
+            )
             messages += ChatMessage(fromUser = false, text = reply.text, source = reply.source)
             busy = false
+        }
+    }
+
+    /** "/bench": compares Gemini models on a fixed prompt set without touching playback. */
+    private fun runBenchmark(which: String) {
+        if (gemini == null) {
+            messages += ChatMessage(false, "Bản build này không có Firebase nên không chạy được benchmark.")
+            busy = false
+            return
+        }
+        val flash = vn.laho.musicplayer.assistant.online.GeminiAssistant.MODEL_FLASH
+        val lite = vn.laho.musicplayer.assistant.online.GeminiAssistant.MODEL_FLASH_LITE
+        val models = when (which) {
+            "lite" -> listOf(lite)
+            "flash" -> listOf(flash)
+            else -> listOf(flash, lite)
+        }
+        messages += ChatMessage(
+            false,
+            "Đang chạy benchmark ${models.joinToString(" và ")} (10 câu mỗi model, dry-run, " +
+                "khoảng 3-5 phút)…",
+        )
+        viewModelScope.launch {
+            try {
+                val bench = vn.laho.musicplayer.assistant.online.AssistantBenchmark(gateway)
+                val summaries = bench.run(models) { progress -> Log.i(TAG, progress) }
+                val report = vn.laho.musicplayer.assistant.online.AssistantBenchmark.format(summaries)
+                Log.i(TAG, report)
+                messages += ChatMessage(false, report, AssistantReply.Source.ONLINE)
+            } catch (e: Exception) {
+                Log.w(TAG, "Benchmark failed", e)
+                messages += ChatMessage(false, "Benchmark lỗi: ${e.message}")
+            } finally {
+                busy = false
+            }
         }
     }
 
