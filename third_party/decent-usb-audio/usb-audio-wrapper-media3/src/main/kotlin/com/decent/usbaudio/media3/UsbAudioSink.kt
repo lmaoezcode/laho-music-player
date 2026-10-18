@@ -187,7 +187,7 @@ class UsbAudioSink(
                 } else {
                     Log.i(TAG, "configure: engine running, same rate — keeping alive")
                 }
-                super.configure(audioSinkConfig)
+                super.configure(delegateConfig(audioSinkConfig))
                 muteDelegateIfNeeded()
                 return
             }
@@ -222,7 +222,7 @@ class UsbAudioSink(
                 windowOffsetUs = -1L
                 usbStartMediaTimeNeedsInit = true
                 if (config.forceRouteToSpeaker) forceMediaToSpeaker()
-                super.configure(audioSinkConfig)
+                super.configure(delegateConfig(audioSinkConfig))
                 muteDelegateIfNeeded()
                 Log.i(TAG, "Delegate configured (muted, routed to speaker)")
                 return
@@ -236,6 +236,25 @@ class UsbAudioSink(
         if (usbAudioStream != null && !config.bitPerfectEnabled) {
             releaseUsbStream()
         }
+    }
+
+    /**
+     * LaHo: the muted delegate never receives PCM in USB mode, so its TrimmingAudioProcessor
+     * (MP3/AAC encoder delay/padding) is configured but never fed. Media3 1.11 then crashes in
+     * TrimmingAudioProcessor.onFlush (NegativeArraySizeException: trimEndFrames x NOT_SET
+     * bytesPerFrame) on the next reset, e.g. MP3 -> FLAC 48 kHz, and the player stops. Strip
+     * the gapless metadata from the format handed to the delegate; its output is discarded.
+     */
+    private fun delegateConfig(c: AudioSink.AudioSinkConfig): AudioSink.AudioSinkConfig {
+        val f = c.format
+        if (f.encoderDelay == 0 && f.encoderPadding == 0) return c
+        val builder = AudioSink.AudioSinkConfig.Builder(
+            f.buildUpon().setEncoderDelay(0).setEncoderPadding(0).build()
+        ).setPreferredBufferSizeOverride(c.preferredBufferSizeOverride)
+            .setTimeline(c.timeline)
+            .setMediaPeriodId(c.mediaPeriodId)
+        c.outputChannelMapping?.let { builder.setOutputChannelMapping(it) }
+        return builder.build()
     }
 
     override fun handleBuffer(

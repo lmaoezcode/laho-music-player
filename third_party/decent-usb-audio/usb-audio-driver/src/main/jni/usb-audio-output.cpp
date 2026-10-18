@@ -325,13 +325,22 @@ static int drainAllUrbs(UsbAudioContext *ctx) {
     }
 
     // Phase 1: try to reap naturally (URBs that completed normally)
+    // LaHo: bounded by an overall deadline. The full ring holds at most 160 ms of audio
+    // (80 URBs x 8 packets x 2 microframes at bInterval=2); upstream waited up to 500 ms per
+    // URB, so a ring with slow or lost completions stalled a track switch for >1.5 s.
+    struct timespec drainStart, now;
+    clock_gettime(CLOCK_MONOTONIC, &drainStart);
     while (ctx->urbsInFlight > 0) {
-        int result = reapOldestUrb(ctx, 500);
+        int result = reapOldestUrb(ctx, 50);
         if (result == 0) {
             drained++;
         } else {
             break;
         }
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        long elapsedMs = (now.tv_sec - drainStart.tv_sec) * 1000L +
+                         (now.tv_nsec - drainStart.tv_nsec) / 1000000L;
+        if (elapsedMs > 250) break;
     }
 
     if (ctx->urbsInFlight > 0) {
@@ -351,15 +360,18 @@ static int drainAllUrbs(UsbAudioContext *ctx) {
         // entire completion queue to prevent event ring accumulation that
         // would corrupt future streams.
         int reaped = 0;
-        for (int attempt = 0; attempt < 500 && reaped < toDiscard; attempt++) {
+        int idlePolls = 0;  // LaHo: give up after 20 ms without a completion (was 500 ms)
+        for (int attempt = 0; attempt < 500 && reaped < toDiscard && idlePolls < 20; attempt++) {
             struct usbdevfs_urb *c = nullptr;
             int ret = ioctl(ctx->fd, USBDEVFS_REAPURBNDELAY, &c);
             if (ret == 0 && c != nullptr) {
                 reaped++;
+                idlePolls = 0;
             } else if (ret < 0 && errno != EAGAIN) {
                 LOGE("drainAllUrbs: reap error errno=%d", errno);
                 break;
             } else {
+                idlePolls++;
                 usleep(1000);  // 1ms
             }
         }
