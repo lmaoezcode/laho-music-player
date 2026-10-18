@@ -2208,7 +2208,7 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
         isSkipPrevious: Boolean = false
     ): Boolean {
         try {
-            if (!appSettings.crossfade.value || !appSettings.crossfadeOnSkip.value) {
+            if (!rhythmPlayerEngine.isCrossfadeAllowed() || !appSettings.crossfadeOnSkip.value) {
                 return false
             }
 

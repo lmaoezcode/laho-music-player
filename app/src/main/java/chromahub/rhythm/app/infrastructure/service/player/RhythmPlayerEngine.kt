@@ -272,6 +272,16 @@ class RhythmPlayerEngine(
 
     fun isTransitionRunning(): Boolean = transitionRunning || transitionJob?.isActive == true
 
+    // LaHo: true when player A was built with the USB DAC sink. A crossfade swaps players A and
+    // B, which would hand playback to player B (no USB sink: silence) and leave the USB sink on
+    // the paused "next" player, so crossfade is disabled while the USB driver owns the DAC.
+    @Volatile
+    private var lahoUsbSinkActive = false
+
+    /** Crossfade setting, forced off while the LaHo USB driver is active. */
+    fun isCrossfadeAllowed(): Boolean =
+        AppSettings.getInstance(context).crossfade.value && !lahoUsbSinkActive
+
     fun getAudioSessionId(): Int = if (::playerA.isInitialized) playerA.audioSessionId else 0
 
     @Volatile
@@ -442,6 +452,7 @@ class RhythmPlayerEngine(
         // LaHo: userspace USB DAC driver (bit-perfect on Android 10+). Takes priority over the
         // DSP, and only the primary player streams to the DAC.
         val useLahoUsb = primary && vn.laho.musicplayer.usb.LahoUsbAudio.isEnabled(appSettings)
+        if (primary) lahoUsbSinkActive = useLahoUsb
         val useLahoDsp = appSettings.lahoDspEnabled.value &&
             appSettings.audioRoutingMode.value != "app" &&
             !vn.laho.musicplayer.usb.LahoUsbAudio.isEnabled(appSettings)
@@ -787,6 +798,10 @@ class RhythmPlayerEngine(
      */
     @Synchronized
     fun performTransition(settings: TransitionSettings) {
+        if (lahoUsbSinkActive) {
+            Log.w(TAG, "Ignoring transition: crossfade is disabled while the LaHo USB driver is active")
+            return
+        }
         if (isTransitionRunning()) {
             Log.w(TAG, "Ignoring duplicate transition request; a transition is already active.")
             return
