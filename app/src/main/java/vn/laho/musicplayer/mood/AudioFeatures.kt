@@ -36,10 +36,13 @@ data class AudioFeatures(
      * it comes from the LLM classifier.
      */
     fun arousal(): Double {
-        val energy = norm(rmsDb, -30.0, -8.0)
+        // Ranges calibrated on real music (Mi 11 Ultra test library, Oct 2026): masters sit
+        // around -8…-20 dBFS and spectral flux ~20–40; the first guess (flux 0.5–4)
+        // saturated. LibraryCalibration refines this relative to the user's library.
+        val energy = norm(rmsDb, -24.0, -8.0)
         val tempo = if (bpm <= 0) 0.4 else norm(bpm, 70.0, 150.0)
         val bright = norm(spectralCentroidHz, 800.0, 3500.0)
-        val busy = norm(spectralFlux, 0.5, 4.0)
+        val busy = norm(spectralFlux, 20.0, 40.0)
         return (0.35 * energy + 0.25 * tempo + 0.2 * bright + 0.2 * busy).coerceIn(0.0, 1.0)
     }
 

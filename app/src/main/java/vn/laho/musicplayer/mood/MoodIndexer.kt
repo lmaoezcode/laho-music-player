@@ -19,6 +19,8 @@ data class IndexReport(
     val classified: Int,
     val llmFailures: Int,
     val indexedWithMood: Int,
+    /** Message of the last failed classifier request (e.g. App Check / network), if any. */
+    val lastLlmError: String? = null,
 )
 
 /**
@@ -35,6 +37,8 @@ class MoodIndexer(
     private val classifier: LlmMoodClassifier?,
     private val batchSize: Int = 25,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Called for each failed classifier request (logging). */
+    private val onError: (Exception) -> Unit = {},
 ) {
 
     suspend fun run(onProgress: (IndexProgress) -> Unit = {}): IndexReport {
@@ -65,19 +69,22 @@ class MoodIndexer(
         // 2) LLM verdicts
         var classified = 0
         var llmFailures = 0
+        var lastLlmError: String? = null
         if (classifier != null) {
             val needLlm = songs.filter { records[it.id]?.hasVerdict != true }
             needLlm.chunked(batchSize).forEachIndexed { b, chunk ->
                 coroutineContext.ensureActive()
                 onProgress(IndexProgress(IndexProgress.Stage.LLM, b * batchSize, needLlm.size))
                 val inputs = chunk.map { s ->
-                    MoodInput(s.id, s.title, s.artist, s.album, s.genre, records[s.id]?.toFeatures())
+                    MoodInput(s.id, s.title, s.artist, s.album, s.genre, records[s.id]?.features())
                 }
                 val verdicts = try {
                     classifier.classify(inputs)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
+                    lastLlmError = e.message ?: e::class.simpleName
+                    onError(e)
                     emptyList()
                 }
                 val byId = verdicts.associateBy { it.id }
@@ -103,11 +110,6 @@ class MoodIndexer(
         val songIds = songs.map { it.id }.toSet()
         val withMood = records.values.count { it.songId in songIds && it.profile() != null }
         onProgress(IndexProgress(IndexProgress.Stage.DONE, songs.size, songs.size))
-        return IndexReport(songs.size, analysed, decodeFailures, classified, llmFailures, withMood)
-    }
-
-    private fun MoodRecord.toFeatures(): AudioFeatures? {
-        if (bpm == null || rmsDb == null || centroidHz == null) return null
-        return AudioFeatures(bpm, rmsDb, dynamicRangeDb ?: 0.0, centroidHz, flux ?: 0.0, lowEnergyRatio ?: 0.0, 0.0)
+        return IndexReport(songs.size, analysed, decodeFailures, classified, llmFailures, withMood, lastLlmError)
     }
 }

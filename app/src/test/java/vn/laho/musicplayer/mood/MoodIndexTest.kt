@@ -173,9 +173,12 @@ class MoodIndexerTest {
 
     @Test
     fun failingModelCountsAsFailuresNotCrash() = runBlocking {
-        val broken = LlmMoodClassifier({ _, _ -> error("quota") }, "m")
-        val report = MoodIndexer(InMemoryMoodStore(), { library }, { null }, broken).run()
+        val broken = LlmMoodClassifier({ _, _ -> error("Firebase App Check token is invalid.") }, "m")
+        val errors = mutableListOf<Exception>()
+        val report = MoodIndexer(InMemoryMoodStore(), { library }, { null }, broken, onError = { errors += it }).run()
         assertEquals(4, report.llmFailures)
         assertEquals(0, report.indexedWithMood)
+        assertEquals("Firebase App Check token is invalid.", report.lastLlmError)
+        assertEquals(1, errors.size)
     }
 }

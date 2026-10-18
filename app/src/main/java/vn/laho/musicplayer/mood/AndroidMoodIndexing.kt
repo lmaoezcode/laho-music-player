@@ -38,6 +38,7 @@ object AndroidMoodIndexing {
                 }
             },
             classifier = classifier,
+            onError = { e -> android.util.Log.w("LahoMood", "Gemini mood classification failed", e) },
         )
     }
 
@@ -49,12 +50,16 @@ object AndroidMoodIndexing {
         val dir = context.getExternalFilesDir(null) ?: context.filesDir
         val file = File(dir, "mood_index.csv")
         val header = "song_id,title,artist,bpm,rms_db,dynamic_range_db,centroid_hz,flux,low_ratio," +
-            "arousal_audio,valence_llm,arousal_llm,labels,confidence,model,combined_valence,combined_arousal"
-        val rows = store.all().sortedBy { it.artist + it.title }.map { r ->
-            val p = r.profile()
+            "arousal_audio_abs,arousal_audio_calibrated,valence_llm,arousal_llm,labels,confidence,model," +
+            "combined_valence,combined_arousal"
+        val records = store.all()
+        val calibration = LibraryCalibration.from(records)
+        val rows = records.sortedBy { it.artist + it.title }.map { r ->
+            val p = r.profile(calibration)
             listOf(
                 r.songId, r.title, r.artist, r.bpm, r.rmsDb, r.dynamicRangeDb, r.centroidHz, r.flux, r.lowEnergyRatio,
-                r.arousalAudio, r.valence, r.arousalLlm, r.labels, r.confidence, r.llmModel, p?.valence, p?.arousal,
+                r.features()?.arousal(), calibration?.arousal(r), r.valence, r.arousalLlm, r.labels, r.confidence,
+                r.llmModel, p?.valence, p?.arousal,
             ).joinToString(",") { csv(it) }
         }
         file.writeText((listOf(header) + rows).joinToString("\n"), Charsets.UTF_8)

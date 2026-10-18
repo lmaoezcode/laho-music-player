@@ -60,6 +60,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import chromahub.rhythm.app.R
 import chromahub.rhythm.app.ui.theme.RhythmTheme
+import vn.laho.musicplayer.mood.asIndex
 import kotlinx.coroutines.launch
 
 /** One line in the assistant chat. */
@@ -70,7 +71,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     private val gemini = vn.laho.musicplayer.assistant.online.GeminiAssistant.createOrNull(app)
     private val moodStore = vn.laho.musicplayer.mood.RoomMoodStore.get(app)
     private val engine = AssistantEngine(
-        ToolRegistry.default(gateway, vn.laho.musicplayer.mood.MoodIndex { moodStore.all().mapNotNull { it.profile() } }),
+        ToolRegistry.default(gateway, moodStore.asIndex()),
         online = gemini,
     )
     private var indexJob: kotlinx.coroutines.Job? = null
@@ -153,6 +154,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                             "Âm thanh: ${report.analysed} bài mới phân tích, ${report.decodeFailures} bài không giải mã được. " +
                             "Gemini: ${report.classified} bài phân loại" +
                             (if (report.llmFailures > 0) ", ${report.llmFailures} bài lỗi (chạy lại /index để thử lại)." else ".") +
+                            llmErrorHint(report.lastLlmError) +
                             " Thử: \"bật nhạc buồn\", \"nhạc tập gym\"."
                         Log.i(TAG, summary)
                         messages += ChatMessage(false, summary)
@@ -193,6 +195,20 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                 )
                 busy = false
             }
+        }
+    }
+
+    private fun llmErrorHint(error: String?): String {
+        if (error == null) return ""
+        val lower = error.lowercase()
+        return when {
+            "app check" in lower || "appcheck" in lower || "attestation" in lower ->
+                " Lý do: App Check từ chối. Hãy thêm debug token của máy này (logcat, tag DebugAppCheckProvider) " +
+                    "vào Firebase Console → Security → App Check → ⋮ → Manage debug tokens."
+            "unable to resolve host" in lower || "timeout" in lower || "network" in lower ->
+                " Lý do: không có mạng."
+            "quota" in lower || "429" in lower -> " Lý do: hết lượt miễn phí, thử lại sau."
+            else -> " Lý do: $error"
         }
     }
 

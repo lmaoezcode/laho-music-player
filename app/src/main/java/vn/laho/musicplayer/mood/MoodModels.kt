@@ -74,9 +74,22 @@ data class MoodRecord(
         featureVersion = FEATURE_VERSION, featureError = error, updatedAt = now,
     )
 
+    /** Raw audio features, or null when the song could not be analysed. */
+    fun features(): AudioFeatures? {
+        if (bpm == null || rmsDb == null || centroidHz == null) return null
+        return AudioFeatures(bpm, rmsDb, dynamicRangeDb ?: 0.0, centroidHz, flux ?: 0.0, lowEnergyRatio ?: 0.0, 0.0)
+    }
+
+    /**
+     * Audio arousal in 0..1: library-relative when [calibration] is available, otherwise the
+     * absolute scale recomputed from the raw features (stored [arousalAudio] as last resort).
+     */
+    fun audioArousal(calibration: LibraryCalibration? = null): Double? =
+        calibration?.arousal(this) ?: features()?.arousal() ?: arousalAudio
+
     /** Combined position on the mood plane; null when nothing is known yet. */
-    fun profile(): MoodProfile? {
-        val audioArousal = arousalAudio?.let { it * 2 - 1 } // 0..1 → -1..1
+    fun profile(calibration: LibraryCalibration? = null): MoodProfile? {
+        val audioArousal = audioArousal(calibration)?.let { it * 2 - 1 } // 0..1 → -1..1
         val arousal = listOfNotNull(audioArousal, arousalLlm).takeIf { it.isNotEmpty() }?.average()
         if (arousal == null && valence == null) return null
         val moods = labels?.split(',')?.mapNotNull { Mood.fromKey(it) }?.toSet().orEmpty()
@@ -114,4 +127,9 @@ fun interface MoodIndex {
     suspend fun profiles(): List<MoodProfile>
 }
 
-fun MoodStore.asIndex() = MoodIndex { all().mapNotNull { it.profile() } }
+/** Index over the store, with audio arousal calibrated against the whole library. */
+fun MoodStore.asIndex() = MoodIndex {
+    val records = all()
+    val calibration = LibraryCalibration.from(records)
+    records.mapNotNull { it.profile(calibration) }
+}
