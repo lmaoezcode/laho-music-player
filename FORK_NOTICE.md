@@ -32,6 +32,9 @@ contributors.
   1.5.0 as the `third_party/flac` submodule (BSD); glue in
   `vn.laho.musicplayer.usb`, hooks in `RhythmPlayerEngine`, `MainActivity`,
   `AppSettings`, the manifest and the external capabilities settings screen.
+- 2026-10-18: added an automatic mood index (`vn.laho.musicplayer.mood`: offline
+  audio features, Gemini classification, own Room database) and the assistant's
+  `play_by_mood` tool.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with
