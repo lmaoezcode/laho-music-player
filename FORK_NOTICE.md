@@ -35,6 +35,15 @@ contributors.
 - 2026-10-18: added an automatic mood index (`vn.laho.musicplayer.mood`: offline
   audio features, Gemini classification, own Room database) and the assistant's
   `play_by_mood` tool.
+- 2026-10-18: added metadata lookup (`vn.laho.musicplayer.metadata`): MusicBrainz
+  web service client (rate limited to 1 request/s, descriptive User-Agent) with
+  match scoring, Cover Art Archive covers, a "Find metadata" action in the tag
+  editor of `SongInfoBottomSheet` (suggest, review, then the existing Save writes
+  the tags), and the assistant's `/meta` batch command that stores suggestions
+  only in LaHo's Room database (`LahoMoodDatabase` version 2, real migration
+  1 to 2, schemas exported to `app/schemas`) and feeds genre/year to the mood
+  index. MusicBrainz core data is CC0 and the service is free for non-commercial
+  use; commercial use needs a MetaBrainz commercial plan.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

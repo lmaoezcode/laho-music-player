@@ -1519,6 +1519,8 @@ private fun EditSongSheet(
     var isSaving by remember { mutableStateOf(false) }
     var isFetchingOnlineArt by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    // LaHo: MusicBrainz lookup; only pre-fills the fields, nothing is written until Save.
+    var showMetadataLookup by remember { mutableStateOf(false) }
     var resolvedSongArtworkUri by remember(song.id, song.artworkUri, song.uri) {
         mutableStateOf(song.artworkUri)
     }
@@ -1630,6 +1632,34 @@ private fun EditSongSheet(
         }
     }
     
+    if (showMetadataLookup) {
+        vn.laho.musicplayer.metadata.MetadataLookupDialog(
+            query = vn.laho.musicplayer.metadata.LookupQuery(
+                title = title,
+                artist = artist,
+                durationMs = song.duration,
+            ),
+            cacheKey = song.id.filter { it.isLetterOrDigit() },
+            onDismiss = { showMetadataLookup = false },
+            onApply = { c, cover ->
+                title = c.title
+                artist = c.artist
+                c.album?.let { album = it }
+                c.albumArtist?.let { albumArtist = it }
+                c.genre?.let { genre = it }
+                c.year?.let { year = it.toString() }
+                c.trackNumber?.let { trackNumber = it.toString() }
+                c.discNumber?.let { discNumber = it.toString() }
+                if (cover != null) {
+                    selectedImageUri = cover
+                    removeArtwork = false
+                }
+                showMetadataLookup = false
+                Toast.makeText(context, R.string.laho_meta_applied, Toast.LENGTH_LONG).show()
+            },
+        )
+    }
+
     val proceedWithSave = { 
         val yearInt = year.toIntOrNull() ?: 0
         val trackInt = trackNumber.toIntOrNull() ?: 0
@@ -1931,6 +1961,17 @@ private fun EditSongSheet(
                                         text = stringResource(R.string.songinfobottomsheet_fetch_online_art)
                                     )
                                 }
+
+                                Spacer(modifier = Modifier.height(10.dp))
+                                RhythmDetailActionButtonFullWidth(
+                                    onClick = { showMetadataLookup = true },
+                                    enabled = title.isNotBlank() && !isSaving,
+                                    height = 48.dp,
+                                    type = RhythmButtonType.Tonal,
+                                    icon = MaterialSymbolIcon("search", filled = true),
+                                    iconSize = 18.dp,
+                                    text = stringResource(R.string.laho_meta_find)
+                                )
                             }
                         }
 
@@ -2446,6 +2487,16 @@ private fun EditSongSheet(
                             text = stringResource(R.string.songinfobottomsheet_fetch_online_art)
                         )
                     }
+
+                    RhythmDetailActionButtonFullWidth(
+                            onClick = { showMetadataLookup = true },
+                            enabled = title.isNotBlank() && !isSaving,
+                            height = 48.dp,
+                            type = RhythmButtonType.Tonal,
+                            icon = MaterialSymbolIcon("search", filled = true),
+                            iconSize = 18.dp,
+                            text = stringResource(R.string.laho_meta_find)
+                        )
 
                     Spacer(modifier = Modifier.height(4.dp))
 

@@ -113,6 +113,8 @@ data class IndexableSong(
     val genre: String?,
     val uri: String,
     val durationMs: Long,
+    /** Release year when known (file tag, or a stored MusicBrainz suggestion). */
+    val year: Int? = null,
 )
 
 /** Persistence for mood records (Room on device, in-memory in tests). */

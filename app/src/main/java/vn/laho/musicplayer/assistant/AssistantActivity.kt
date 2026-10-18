@@ -106,6 +106,11 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             moodCommand(trimmed.lowercase())
             return
         }
+        if (trimmed.startsWith("/meta", ignoreCase = true)) {
+            busy = true
+            metaCommand(trimmed.lowercase())
+            return
+        }
         busy = true
         if (trimmed.startsWith("/bench", ignoreCase = true)) {
             // "/bench" compares flash and flash-lite; "/bench lite" or "/bench flash" runs one.
@@ -193,6 +198,54 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
                     "Chỉ mục: ${records.size} bài (${records.count { it.hasFeatures && it.featureError == null }} có đặc trưng âm thanh, " +
                         "${records.count { it.hasVerdict }} đã qua Gemini). Theo nhãn: $byMood.",
                 )
+                busy = false
+            }
+        }
+    }
+
+    /**
+     * "/meta": looks up songs with missing genre/year/album (or unknown artist) on MusicBrainz and
+     * stores suggestions in LaHo's database only (never the files). "/stop" cancels;
+     * "/meta" again resumes; "/meta reset" forgets the stored suggestions.
+     */
+    private fun metaCommand(cmd: String) {
+        val ctx = getApplication<Application>()
+        if (cmd.startsWith("/meta reset")) {
+            viewModelScope.launch {
+                try {
+                    vn.laho.musicplayer.mood.metadataStore(ctx).clear()
+                    messages += ChatMessage(false, "Đã xoá các gợi ý metadata đã lưu.")
+                } finally {
+                    busy = false
+                }
+            }
+            return
+        }
+        messages += ChatMessage(false, "Đang tra metadata trên MusicBrainz… (gõ /stop để dừng, chạy lại sẽ tiếp tục; không sửa file nhạc)")
+        val progressAt = messages.lastIndex
+        indexJob = viewModelScope.launch {
+            try {
+                val report = vn.laho.musicplayer.metadata.AndroidMetadata.batch(ctx).run { p ->
+                    if (p.current != null) {
+                        messages[progressAt] = ChatMessage(false, "Tra metadata ${p.done + 1}/${p.total}: ${p.current}")
+                    }
+                }
+                val summary = "Tra metadata xong: ${report.candidates} bài thiếu thông tin" +
+                    (if (report.skipped > 0) " (${report.skipped} bài đã tra trước đó)" else "") +
+                    ". Tìm thấy ${report.found}, không thấy ${report.notFound}" +
+                    (if (report.failed > 0) ", lỗi ${report.failed} (chạy lại /meta để thử lại)" else "") + "." +
+                    (report.lastError?.let { " Lỗi cuối: $it." } ?: "") +
+                    " Gợi ý chỉ lưu trong LaHo (dùng cho chỉ mục tâm trạng), file nhạc không bị sửa. " +
+                    "Dữ liệu: MusicBrainz. Chạy /index để chỉ mục dùng thể loại/năm mới."
+                Log.i(TAG, summary)
+                messages += ChatMessage(false, summary)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                messages += ChatMessage(false, "Đã dừng. Gõ /meta để tiếp tục từ chỗ dừng.")
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Metadata batch failed", e)
+                messages += ChatMessage(false, "Tra metadata lỗi: ${e.message}")
+            } finally {
                 busy = false
             }
         }

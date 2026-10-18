@@ -231,6 +231,12 @@ androidComponents {
     }
 }
 
+// LaHo: export Room schemas (LahoMoodDatabase only; upstream databases use exportSchema = false)
+// so migrations can be checked in unit tests.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // LaHo: Gemini via Firebase AI Logic, protected by App Check
     implementation(platform(libs.firebase.bom))
