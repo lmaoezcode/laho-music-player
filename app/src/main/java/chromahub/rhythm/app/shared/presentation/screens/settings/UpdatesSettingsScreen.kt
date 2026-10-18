@@ -332,7 +332,7 @@ fun UpdatesSettingsScreen(onBackClick: () -> Unit) {
         activeDownloadedFile != null -> "Version ${activeLatestVersion?.versionName ?: "?"} is ready to install"
         activeUpdateAvailable -> "Version ${activeLatestVersion?.versionName ?: "?"} • ${activeLatestVersion?.let { updaterViewModel.getReadableFileSize(it.apkSize) } ?: ""}"
         !autoCheckForUpdates -> context.getString(R.string.updates_auto_disabled)
-        else -> "Rhythm is up to date with the latest features and security updates"
+        else -> "LaHo is up to date with the latest features and security updates"
     }
 
     val headerBlendHeight = 24.dp

@@ -1161,10 +1161,10 @@ class StreamingMusicRepositoryImpl(
         fun buildRequest(url: String): okhttp3.Request {
             val reqBuilder = okhttp3.Request.Builder()
                 .url(url)
-                .header("User-Agent", "Rhythm/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
+                .header("User-Agent", "LaHo/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
             if (serviceId == StreamingServiceId.JELLYFIN) {
                 jellyfinClient.getAccessToken()?.let { token ->
-                    reqBuilder.header("Authorization", "MediaBrowser Client=\"Rhythm\", Device=\"Rhythm Android\", DeviceId=\"rhythm-android-client\", Version=\"${chromahub.rhythm.app.BuildConfig.VERSION_NAME}\", Token=\"$token\"")
+                    reqBuilder.header("Authorization", "MediaBrowser Client=\"LaHo\", Device=\"LaHo Android\", DeviceId=\"rhythm-android-client\", Version=\"${chromahub.rhythm.app.BuildConfig.VERSION_NAME}\", Token=\"$token\"")
                     reqBuilder.header("X-Emby-Token", token)
                 }
             }
@@ -1222,7 +1222,7 @@ class StreamingMusicRepositoryImpl(
             } else if (!artworkUri.isNullOrBlank() && (artworkUri.startsWith("http://") || artworkUri.startsWith("https://"))) {
                 val artRequest = okhttp3.Request.Builder()
                     .url(artworkUri)
-                    .header("User-Agent", "Rhythm/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
+                    .header("User-Agent", "LaHo/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
                     .build()
                 try {
                     client.newCall(artRequest).execute().use { responseArt ->

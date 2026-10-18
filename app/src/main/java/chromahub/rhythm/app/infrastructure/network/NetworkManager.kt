@@ -46,7 +46,7 @@ object NetworkManager {
                 // Build request with GitHub API headers
                 val requestBuilder = original.newBuilder()
                     .header("Accept", "application/vnd.github.v3+json")
-                    .header("User-Agent", "Rhythm-Music-App/${BuildConfig.VERSION_NAME} (Android)") // Using a consistent User-Agent helps with rate limits
+                    .header("User-Agent", "LaHo/${BuildConfig.VERSION_NAME} (Android)") // Using a consistent User-Agent helps with rate limits
                 
                 // Add authorization if token is provided
                 if (GITHUB_TOKEN.isNotEmpty()) {

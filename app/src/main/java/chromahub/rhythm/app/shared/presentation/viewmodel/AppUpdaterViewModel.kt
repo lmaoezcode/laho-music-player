@@ -1019,7 +1019,7 @@ class AppUpdaterViewModel(
                     Request
                         .Builder()
                         .url(downloadUrl)
-                        .header("User-Agent", "Rhythm-App/${BuildConfig.VERSION_NAME} (Android)")
+                        .header("User-Agent", "LaHo/${BuildConfig.VERSION_NAME} (Android)")
 
                 // Add range header if resuming
                 if (existingLength > 0 && activeDownload != null) {

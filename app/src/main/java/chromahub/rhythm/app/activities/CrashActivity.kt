@@ -239,7 +239,7 @@ class CrashActivity : AppCompatActivity() {
                                         }
                                         val shareIntent = Intent().apply {
                                             action = Intent.ACTION_SEND
-                                            putExtra(Intent.EXTRA_TEXT, "Rhythm App Crash Log:\n\n$crashLog")
+                                            putExtra(Intent.EXTRA_TEXT, "LaHo Music Player Crash Log:\n\n$crashLog")
                                             type = "text/plain"
                                         }
                                         context.startActivity(Intent.createChooser(shareIntent, "Share Crash Log"))
@@ -477,7 +477,7 @@ class CrashActivity : AppCompatActivity() {
                                     }
                                     val shareIntent = Intent().apply {
                                         action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, "Rhythm App Crash Log:\n\n$crashLog")
+                                        putExtra(Intent.EXTRA_TEXT, "LaHo Music Player Crash Log:\n\n$crashLog")
                                         type = "text/plain"
                                     }
                                     context.startActivity(Intent.createChooser(shareIntent, "Share Crash Log"))

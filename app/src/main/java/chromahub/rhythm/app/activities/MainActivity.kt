@@ -1225,7 +1225,7 @@ class MainActivity : AppCompatActivity() {
             OnboardingStep.STREAMING_SERVICE_CHOICE -> "Streaming Service Choice"
             OnboardingStep.STREAMING_SETUP -> "Streaming Setup"
             OnboardingStep.PERMISSIONS -> "Permissions"
-            OnboardingStep.RHYTHM_GUARD -> "Rhythm Guard"
+            OnboardingStep.RHYTHM_GUARD -> "LaHo Guard"
             OnboardingStep.UPDATER -> "Updates"
             OnboardingStep.FULL_TOUR_PROMPT -> "Full Tour Choice"
             OnboardingStep.NOTIFICATIONS -> "Notifications"
@@ -1238,7 +1238,7 @@ class MainActivity : AppCompatActivity() {
             OnboardingStep.MEDIA_SCAN -> "Media Scan"
             OnboardingStep.WIDGETS -> "Widgets"
             OnboardingStep.INTEGRATIONS -> "Integrations"
-            OnboardingStep.RHYTHM_STATS -> "Rhythm Stats"
+            OnboardingStep.RHYTHM_STATS -> "LaHo Stats"
             OnboardingStep.SETUP_FINISHED -> "Setup Finished"
             OnboardingStep.COMPLETE -> "Complete"
         }

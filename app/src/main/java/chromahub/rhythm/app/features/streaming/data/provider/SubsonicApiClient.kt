@@ -865,7 +865,7 @@ class SubsonicApiClient internal constructor(
                 val request = Request.Builder()
                     .url(url)
                     .header("Accept", "application/json")
-                    .header("User-Agent", "Rhythm/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
+                    .header("User-Agent", "LaHo/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
                     .get()
                     .build()
 
@@ -1335,7 +1335,7 @@ class SubsonicApiClient internal constructor(
         /** Query parameters that carry credentials or client info; not part of a URL reference. */
         private val URL_AUTH_PARAMS = setOf("u", "t", "s", "p", "v", "c", "f")
         private const val URL_REF_ID_PLACEHOLDER = "RHYTHMURLREFID"
-        private const val CLIENT_ID = "Rhythm"
+        private const val CLIENT_ID = "LaHo"
 
         /** Parallel getAlbum requests during a library sync. */
         private const val LIBRARY_FETCH_CONCURRENCY = 4

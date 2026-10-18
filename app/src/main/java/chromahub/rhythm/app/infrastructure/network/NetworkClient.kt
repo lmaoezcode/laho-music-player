@@ -137,7 +137,7 @@ object NetworkClient {
         extraHeaders: Map<String, String> = emptyMap()
     ) = Interceptor { chain ->
         try {
-            val userAgent = customUserAgent ?: "Rhythm/${BuildConfig.VERSION_NAME} (https://github.com/cromaguy/Rhythm)"
+            val userAgent = customUserAgent ?: "LaHo/${BuildConfig.VERSION_NAME} (https://github.com/lmaoezcode/laho-music-player)"
             val requestBuilder = chain.request().newBuilder()
                 .header("User-Agent", userAgent)
                 .header("Accept", "application/json")
@@ -151,7 +151,7 @@ object NetworkClient {
         }
     }
 
-    private fun deezerHeadersInterceptor() = appHeadersInterceptor("RhythmApp/${BuildConfig.VERSION_NAME} (Android)")
+    private fun deezerHeadersInterceptor() = appHeadersInterceptor("LaHo/${BuildConfig.VERSION_NAME} (Android)")
     
     private val deezerHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
@@ -176,8 +176,8 @@ object NetworkClient {
     private val lrclibHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor(appHeadersInterceptor(
-                customUserAgent = "Rhythm/${BuildConfig.VERSION_NAME} (https://github.com/cromaguy/Rhythm)",
-                extraHeaders = mapOf("Lrclib-Client" to "Rhythm/${BuildConfig.VERSION_NAME} (https://github.com/cromaguy/Rhythm)")
+                customUserAgent = "LaHo/${BuildConfig.VERSION_NAME} (https://github.com/lmaoezcode/laho-music-player)",
+                extraHeaders = mapOf("Lrclib-Client" to "LaHo/${BuildConfig.VERSION_NAME} (https://github.com/lmaoezcode/laho-music-player)")
             ))
             .addInterceptor(loggingInterceptor)
             .addInterceptor(retryInterceptor)

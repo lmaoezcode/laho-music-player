@@ -224,7 +224,7 @@ fun BackupRestoreSettingsScreen(onBackClick: () -> Unit) {
         val lines = mutableListOf<String>()
         if (sections.includeGeneralSettings) lines += "• General app settings"
         if (sections.includeLibraryData) lines += "• Playlists, favorites, and folder lists"
-        if (sections.includeStatsAndRhythmGuard) lines += "• Listening stats and Rhythm Guard data"
+        if (sections.includeStatsAndRhythmGuard) lines += "• Listening stats and LaHo Guard data"
         return lines.joinToString("\n")
     }
 

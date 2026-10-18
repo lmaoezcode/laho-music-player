@@ -35,6 +35,14 @@ contributors.
 - 2026-10-18: added an automatic mood index (`vn.laho.musicplayer.mood`: offline
   audio features, Gemini classification, own Room database) and the assistant's
   `play_by_mood` tool.
+- 2026-10-18: LaHo visual identity - new original adaptive launcher icon
+  (stylised "L" + waveform; vector foreground/background/monochrome), splash and
+  in-app logo, status-bar icon (generator: `scripts/branding/gen_laho_icon.py`);
+  user-visible "Rhythm" product-name strings replaced with "LaHo" in all locales;
+  the About screen and README credit Rhythm (GPL-3.0) by Anjishnu Nandi with a
+  link to the upstream repository; network User-Agent / client names now say LaHo.
+  Drawable resource names (`rhythm_logo`, ...) and the update checker's upstream
+  release feed are unchanged.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

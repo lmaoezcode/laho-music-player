@@ -876,7 +876,7 @@ notificationManager.createNotificationChannel(channel)
 notificationManager.createNotificationChannel(sleepTimerChannel)
     }
     
-    private fun startForegroundWithNotification(title: String = "Rhythm Music", content: String = "Rhythm is starting.") {
+    private fun startForegroundWithNotification(title: String = "LaHo Music", content: String = "LaHo is starting.") {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(content)
@@ -1624,7 +1624,7 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
                     val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
                     Song(
                         id = songId,
-                        title = prefs.getString("song_title", "Rhythm") ?: "Rhythm",
+                        title = prefs.getString("song_title", "LaHo") ?: "LaHo",
                         artist = prefs.getString("artist_name", "") ?: "",
                         album = prefs.getString("album_name", "") ?: "",
                         uri = Uri.EMPTY,
@@ -2073,7 +2073,7 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
                         
                         val song = Song(
                             id = songId,
-                            title = prefs.getString("song_title", "Rhythm") ?: "Rhythm",
+                            title = prefs.getString("song_title", "LaHo") ?: "LaHo",
                             artist = prefs.getString("artist_name", "") ?: "",
                             album = prefs.getString("album_name", "") ?: "",
                             uri = Uri.EMPTY,
@@ -2715,7 +2715,7 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
                 .setMediaId("root")
                 .setMediaMetadata(
                     MediaMetadata.Builder()
-                        .setTitle("Rhythm Music Library")
+                        .setTitle("LaHo Music Library")
                         .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
                         .setIsPlayable(false)
                         .setIsBrowsable(true)
@@ -3918,8 +3918,8 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
     fun getSpatializationStatus(): String {
         return when {
             rhythmSpatializationProcessor == null -> "Not initialized"
-            !rhythmSpatializationProcessor!!.isEnabled() -> "Available (Rhythm-based)"
-            else -> "Active (Rhythm-based)"
+            !rhythmSpatializationProcessor!!.isEnabled() -> "Available (LaHo-based)"
+            else -> "Active (LaHo-based)"
         }
     }
 
