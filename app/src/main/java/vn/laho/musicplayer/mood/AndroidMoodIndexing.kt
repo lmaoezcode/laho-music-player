@@ -16,8 +16,16 @@ import vn.laho.musicplayer.assistant.online.LahoFirebase
 object AndroidMoodIndexing {
 
     suspend fun librarySongs(context: Context): List<IndexableSong> = withContext(Dispatchers.IO) {
+        val suggestions = vn.laho.musicplayer.metadata.metadataSuggestionsById(context)
         RhythmDatabase.getInstance(context).songDao().getAllSongs().map { it.toSong() }.map {
-            IndexableSong(it.id, it.title, it.artist, it.album, it.genre, it.uri.toString(), it.duration)
+            // File tags win; a stored MusicBrainz suggestion only fills what the tag lacks.
+            val s = suggestions[it.id]
+            IndexableSong(
+                it.id, it.title, it.artist, it.album,
+                vn.laho.musicplayer.metadata.SuggestionFill.genre(it.genre, s),
+                it.uri.toString(), it.duration,
+                year = vn.laho.musicplayer.metadata.SuggestionFill.year(it.year, s),
+            )
         }
     }
 

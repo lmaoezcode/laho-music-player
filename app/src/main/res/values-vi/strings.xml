@@ -2547,4 +2547,17 @@
     <string name="laho_assistant_title">Trợ lý LaHo</string>
     <string name="laho_assistant_entry">Trợ lý LaHo (thử nghiệm)</string>
     <string name="laho_assistant_entry_desc">Điều khiển nhạc bằng chữ hoặc giọng nói: chuyển bài, tạm dừng, âm lượng, phát bài trong thư viện, tìm và tải nhạc từ Google Drive (/drive). Lệnh cơ bản chạy được khi không có mạng.</string>
+    <string name="laho_meta_find">Tìm metadata</string>
+    <string name="laho_meta_title">Tìm metadata (MusicBrainz)</string>
+    <string name="laho_meta_searching">Đang tìm trên MusicBrainz…</string>
+    <string name="laho_meta_none">Không tìm thấy bản ghi phù hợp. Kiểm tra lại tên bài và nghệ sĩ rồi thử lại.</string>
+    <string name="laho_meta_error">Tra cứu lỗi: %1$s</string>
+    <string name="laho_meta_retry">Thử lại</string>
+    <string name="laho_meta_pick">Có nhiều kết quả gần giống nhau. Hãy chọn đúng bài; các ô chỉ được điền sẵn, chưa lưu gì cho tới khi bạn bấm Lưu.</string>
+    <string name="laho_meta_review">Xem lại gợi ý. Các ô chỉ được điền sẵn, chưa lưu gì cho tới khi bạn bấm Lưu.</string>
+    <string name="laho_meta_apply">Điền vào các ô</string>
+    <string name="laho_meta_use_cover">Dùng cả ảnh bìa (Cover Art Archive)</string>
+    <string name="laho_meta_source_confidence">%1$s · độ tin cậy %2$d%%</string>
+    <string name="laho_meta_footer">Dữ liệu từ MusicBrainz và Cover Art Archive.</string>
+    <string name="laho_meta_applied">Đã điền metadata từ MusicBrainz. Bấm Lưu để ghi vào file.</string>
 </resources>

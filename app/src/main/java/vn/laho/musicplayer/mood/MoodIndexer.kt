@@ -76,7 +76,7 @@ class MoodIndexer(
                 coroutineContext.ensureActive()
                 onProgress(IndexProgress(IndexProgress.Stage.LLM, b * batchSize, needLlm.size))
                 val inputs = chunk.map { s ->
-                    MoodInput(s.id, s.title, s.artist, s.album, s.genre, records[s.id]?.features())
+                    MoodInput(s.id, s.title, s.artist, s.album, s.genre, records[s.id]?.features(), s.year)
                 }
                 val verdicts = try {
                     classifier.classify(inputs)

@@ -1,0 +1,227 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "598b94b8f255ebf67032b079b74972b9",
+    "entities": [
+      {
+        "tableName": "moods",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`songId` TEXT NOT NULL, `title` TEXT NOT NULL, `artist` TEXT NOT NULL, `bpm` REAL, `rmsDb` REAL, `dynamicRangeDb` REAL, `centroidHz` REAL, `flux` REAL, `lowEnergyRatio` REAL, `arousalAudio` REAL, `featureVersion` INTEGER NOT NULL, `featureError` TEXT, `valence` REAL, `arousalLlm` REAL, `labels` TEXT, `confidence` REAL, `llmModel` TEXT, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`songId`))",
+        "fields": [
+          {
+            "fieldPath": "songId",
+            "columnName": "songId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "artist",
+            "columnName": "artist",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bpm",
+            "columnName": "bpm",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rmsDb",
+            "columnName": "rmsDb",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "dynamicRangeDb",
+            "columnName": "dynamicRangeDb",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "centroidHz",
+            "columnName": "centroidHz",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "flux",
+            "columnName": "flux",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "lowEnergyRatio",
+            "columnName": "lowEnergyRatio",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "arousalAudio",
+            "columnName": "arousalAudio",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "featureVersion",
+            "columnName": "featureVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "featureError",
+            "columnName": "featureError",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "valence",
+            "columnName": "valence",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "arousalLlm",
+            "columnName": "arousalLlm",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "labels",
+            "columnName": "labels",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "confidence",
+            "columnName": "confidence",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "llmModel",
+            "columnName": "llmModel",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "songId"
+          ]
+        }
+      },
+      {
+        "tableName": "metadata_suggestions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`songId` TEXT NOT NULL, `title` TEXT NOT NULL, `artist` TEXT NOT NULL, `status` TEXT NOT NULL, `source` TEXT, `confidence` REAL, `matchedTitle` TEXT, `matchedArtist` TEXT, `album` TEXT, `albumArtist` TEXT, `year` INTEGER, `trackNumber` INTEGER, `discNumber` INTEGER, `genre` TEXT, `recordingMbid` TEXT, `releaseMbid` TEXT, `releaseGroupMbid` TEXT, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`songId`))",
+        "fields": [
+          {
+            "fieldPath": "songId",
+            "columnName": "songId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "artist",
+            "columnName": "artist",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "confidence",
+            "columnName": "confidence",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "matchedTitle",
+            "columnName": "matchedTitle",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "matchedArtist",
+            "columnName": "matchedArtist",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "album",
+            "columnName": "album",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "albumArtist",
+            "columnName": "albumArtist",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "year",
+            "columnName": "year",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "trackNumber",
+            "columnName": "trackNumber",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "discNumber",
+            "columnName": "discNumber",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "genre",
+            "columnName": "genre",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "recordingMbid",
+            "columnName": "recordingMbid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "releaseMbid",
+            "columnName": "releaseMbid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "releaseGroupMbid",
+            "columnName": "releaseGroupMbid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "songId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '598b94b8f255ebf67032b079b74972b9')"
+    ]
+  }
+}

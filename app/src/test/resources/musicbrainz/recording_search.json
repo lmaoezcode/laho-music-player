@@ -1,0 +1,56 @@
+{
+  "created": "2026-10-18T10:00:00.000Z",
+  "count": 3,
+  "offset": 0,
+  "recordings": [
+    {
+      "id": "rec-single-live",
+      "score": 100,
+      "title": "Lạc Trôi",
+      "length": 262000,
+      "artist-credit": [{"name": "Sơn Tùng M-TP", "joinphrase": "", "artist": {"id": "artist-stmtp", "name": "Sơn Tùng M-TP"}}],
+      "first-release-date": "2017-01-01",
+      "releases": [
+        {"id": "rel-live", "title": "Live in Hanoi", "status": "Official", "date": "2019-05-01",
+         "artist-credit": [{"name": "Sơn Tùng M-TP", "joinphrase": "", "artist": {"id": "artist-stmtp", "name": "Sơn Tùng M-TP"}}],
+         "release-group": {"id": "rg-live", "primary-type": "Album", "secondary-types": ["Live"]},
+         "media": [{"position": 1, "track-count": 10, "track-offset": 3, "track": [{"id": "t1", "number": "4", "title": "Lạc Trôi"}]}]}
+      ],
+      "tags": [{"count": 1, "name": "seen live"}]
+    },
+    {
+      "id": "rec-main",
+      "score": 98,
+      "title": "Lạc trôi",
+      "length": 231000,
+      "artist-credit": [{"name": "Sơn Tùng M-TP", "joinphrase": "", "artist": {"id": "artist-stmtp", "name": "Sơn Tùng M-TP"}}],
+      "first-release-date": "2017-01-01",
+      "releases": [
+        {"id": "rel-comp", "title": "V-Pop Hits", "status": "Official", "date": "2018-03-03",
+         "artist-credit": [{"name": "Various Artists", "joinphrase": "", "artist": {"id": "va", "name": "Various Artists"}}],
+         "release-group": {"id": "rg-comp", "primary-type": "Album", "secondary-types": ["Compilation"]},
+         "media": [{"position": 2, "track-count": 20, "track-offset": 6, "track": [{"id": "t2", "number": "7", "title": "Lạc trôi"}]}]},
+        {"id": "rel-single", "title": "Lạc trôi", "status": "Official", "date": "2017-01-01",
+         "artist-credit": [{"name": "Sơn Tùng M-TP", "joinphrase": "", "artist": {"id": "artist-stmtp", "name": "Sơn Tùng M-TP"}}],
+         "release-group": {"id": "rg-single", "primary-type": "Single", "secondary-types": []},
+         "media": [{"position": 1, "track-count": 1, "track-offset": 0, "track": [{"id": "t3", "number": "1", "title": "Lạc trôi"}]}]},
+        {"id": "rel-album", "title": "m-tp M-TP", "status": "Official", "date": "2017-06-15",
+         "artist-credit": [{"name": "Sơn Tùng M-TP", "joinphrase": "", "artist": {"id": "artist-stmtp", "name": "Sơn Tùng M-TP"}}],
+         "release-group": {"id": "rg-album", "primary-type": "Album", "secondary-types": []},
+         "media": [{"position": 1, "track-count": 12, "track-offset": 2, "track": [{"id": "t4", "number": "3", "title": "Lạc trôi"}]}]}
+      ],
+      "tags": [{"count": 4, "name": "v-pop"}, {"count": 2, "name": "pop"}, {"count": 9, "name": "seen live"}]
+    },
+    {
+      "id": "rec-other",
+      "score": 60,
+      "title": "Lac Troi (cover)",
+      "length": 200000,
+      "artist-credit": [{"name": "Some Cover Band", "joinphrase": "", "artist": {"id": "artist-cover", "name": "Some Cover Band"}}],
+      "releases": [
+        {"id": "rel-bootleg", "title": "Covers", "status": "Bootleg",
+         "release-group": {"id": "rg-boot", "primary-type": "Album", "secondary-types": []}}
+      ]
+    }
+  ]
+}

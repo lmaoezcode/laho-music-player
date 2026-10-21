@@ -2963,4 +2963,17 @@
     <string name="eq_device_no_profile">No AutoEQ profile linked</string>
     <string name="eq_manage_all_devices">Manage Devices</string>
     <string name="eq_reorder">Reorder</string>
+    <string name="laho_meta_find">Find metadata</string>
+    <string name="laho_meta_title">Find metadata (MusicBrainz)</string>
+    <string name="laho_meta_searching">Searching MusicBrainz…</string>
+    <string name="laho_meta_none">No matching recording found. Check the title and artist and try again.</string>
+    <string name="laho_meta_error">Lookup failed: %1$s</string>
+    <string name="laho_meta_retry">Retry</string>
+    <string name="laho_meta_pick">Several close matches. Pick the right one; the fields are only filled in, nothing is saved until you press Save.</string>
+    <string name="laho_meta_review">Review the suggestion. The fields are only filled in, nothing is saved until you press Save.</string>
+    <string name="laho_meta_apply">Fill in fields</string>
+    <string name="laho_meta_use_cover">Also use the cover art (Cover Art Archive)</string>
+    <string name="laho_meta_source_confidence">%1$s · %2$d%% confidence</string>
+    <string name="laho_meta_footer">Data from MusicBrainz and Cover Art Archive.</string>
+    <string name="laho_meta_applied">Fields filled in from MusicBrainz. Press Save to write them to the file.</string>
 </resources>

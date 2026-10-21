@@ -10,6 +10,11 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Upsert
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import vn.laho.musicplayer.metadata.MetadataDao
+import vn.laho.musicplayer.metadata.MetadataSuggestion
+import vn.laho.musicplayer.metadata.RoomMetadataStore
 
 @Dao
 interface MoodDao {
@@ -27,22 +32,40 @@ interface MoodDao {
  * LaHo's own database (separate from the upstream Rhythm database, so no migration of
  * upstream schema is needed).
  */
-@Database(entities = [MoodRecord::class], version = 1, exportSchema = false)
+@Database(entities = [MoodRecord::class, MetadataSuggestion::class], version = 2, exportSchema = true)
 abstract class LahoMoodDatabase : RoomDatabase() {
     abstract fun moodDao(): MoodDao
+    abstract fun metadataDao(): MetadataDao
 
     companion object {
+        /** v1 → v2: adds the metadata suggestions table; the mood index is kept as is. */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `metadata_suggestions` (`songId` TEXT NOT NULL, `title` TEXT NOT NULL, " +
+                        "`artist` TEXT NOT NULL, `status` TEXT NOT NULL, `source` TEXT, `confidence` REAL, " +
+                        "`matchedTitle` TEXT, `matchedArtist` TEXT, `album` TEXT, `albumArtist` TEXT, `year` INTEGER, " +
+                        "`trackNumber` INTEGER, `discNumber` INTEGER, `genre` TEXT, `recordingMbid` TEXT, " +
+                        "`releaseMbid` TEXT, `releaseGroupMbid` TEXT, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`songId`))",
+                )
+            }
+        }
+
+        val MIGRATIONS = arrayOf(MIGRATION_1_2)
+
         @Volatile
         private var instance: LahoMoodDatabase? = null
 
         fun getInstance(context: Context): LahoMoodDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(context.applicationContext, LahoMoodDatabase::class.java, "laho_mood.db")
-                .fallbackToDestructiveMigration(dropAllTables = true)
+                .addMigrations(*MIGRATIONS)
                 .build()
                 .also { instance = it }
         }
     }
 }
+
+fun metadataStore(context: Context) = RoomMetadataStore(LahoMoodDatabase.getInstance(context).metadataDao())
 
 class RoomMoodStore(private val dao: MoodDao) : MoodStore {
     override suspend fun all() = dao.all()
