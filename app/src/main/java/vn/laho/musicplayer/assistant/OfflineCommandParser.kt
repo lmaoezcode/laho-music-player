@@ -27,6 +27,9 @@ class OfflineCommandParser {
         val command = TRAILING_FILLERS.replace(foldedBody, "").trim()
         parseControl(command)?.let { return it }
 
+        // "tìm X trên drive", "tải bài X từ drive", "tải số 2", "đồng ý tải".
+        parseDrive(body, command)?.let { return it }
+
         // "bật nhạc buồn", "phát vài bài nhẹ nhàng để học", "nhạc tập gym" → mood index.
         parseMoodPlay(foldedBody)?.let { return it }
 
@@ -54,6 +57,19 @@ class OfflineCommandParser {
         // "bài gì đây?" — but not "phát bài gì đó vui vui" (a request for the LLM).
         if (NOW_PLAYING.containsMatchIn(c) && !PLAY_QUERY.containsMatchIn(c)) return ToolCall("get_now_playing")
         return null
+    }
+
+    private fun parseDrive(body: String, command: String): ToolCall? {
+        // `command` is the folded text minus trailing fillers; folding keeps length, so cut the original.
+        val core = body.substring(0, command.length)
+        DRIVE_PICK.matchEntire(command)?.let { return ToolCall("drive_download", mapOf("file_id" to it.groupValues[1])) }
+        if (DRIVE_CONFIRM.matches(command)) return ToolCall("drive_download", mapOf("confirmed" to true))
+        val m = DRIVE_SEARCH.matchEntire(command) ?: return null
+        val range = m.groups[1]?.range ?: return null
+        val query = core.substring(range.first, range.last + 1).trim().trim('"', '“', '”')
+        // "tải nhạc từ google drive" has no song name: leave it to the LLM.
+        if (query.isEmpty() || VietnameseText.fold(query) in GENERIC_WORDS) return null
+        return ToolCall("drive_search", mapOf("query" to query))
     }
 
     private fun parseMoodPlay(folded: String): ToolCall? {
@@ -158,6 +174,12 @@ class OfflineCommandParser {
             "^(?:(?:bat|phat|mo|choi|nghe|play|cho (?:toi|minh|em) nghe)\\s+(?:cho (?:toi|minh|em)\\s+)?(?:nghe\\s+)?)?" +
                 "((?:mot )?(?:vai |may |it |nhung )?(?:bai hat|bai|nhac|ca khuc|playlist)(?: gi do| nao do)?)\\s+(.+)$",
         )
+        private val DRIVE_SEARCH = Regex(
+            "(?:tim(?: kiem)?|search|find|tai(?: xuong)?|download)\\s+(?:(?:bai hat|bai|ca khuc|nhac|file|tep)\\s+)?" +
+                "(.+?)\\s+(?:tu|tren|trong|o|from|on|in)\\s+(?:google\\s+)?drive",
+        )
+        private val DRIVE_PICK = Regex("(?:tai|download)\\s+(?:bai\\s+)?(?:so\\s+)?(\\d{1,2})")
+        private val DRIVE_CONFIRM = Regex("tai|tai luon|tai ngay|(?:dong y|xac nhan|ok|yes) tai|(?:dong y|xac nhan) tai ve")
         private val TITLE_KINDS = setOf("bai", "bai hat", "ca khuc")
         private val ARTIST_SPLIT = Regex("(?:^|\\s)(?:cua|by)\\s+")
         private val GENERIC_WORDS = setOf("nhac", "bai", "bai hat", "ca khuc", "may bai", "vai bai", "cac bai")
