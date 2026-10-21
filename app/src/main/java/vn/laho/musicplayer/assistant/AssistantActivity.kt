@@ -251,6 +251,12 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Exception) {
                 Log.w(TAG, "Drive command failed: ${e.javaClass.simpleName}")
                 messages += ChatMessage(false, e.message ?: "Lỗi Google Drive.")
+            } finally {
+                busy = false
+            }
+        }
+    }
+
 
     /**
      * "/meta": looks up songs with missing genre/year/album (or unknown artist) on MusicBrainz and
