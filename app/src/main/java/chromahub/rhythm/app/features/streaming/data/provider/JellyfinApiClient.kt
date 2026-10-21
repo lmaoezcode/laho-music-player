@@ -919,7 +919,7 @@ class JellyfinApiClient(context: Context) {
                 val request = Request.Builder()
                     .url("${serverUrl.trimEnd('/')}/Users/AuthenticateByName")
                     .header("Authorization", buildAuthorizationHeader(token = null))
-                    .header("User-Agent", "Rhythm/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
+                    .header("User-Agent", "LaHo/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
                     .header("Content-Type", "application/json")
                     .post(body)
                     .build()
@@ -966,7 +966,7 @@ class JellyfinApiClient(context: Context) {
                     .url(urlBuilder.build())
                     .header("Authorization", buildAuthorizationHeader(token = cred.accessToken))
                     .header("X-Emby-Token", cred.accessToken)
-                    .header("User-Agent", "Rhythm/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
+                    .header("User-Agent", "LaHo/${chromahub.rhythm.app.BuildConfig.VERSION_NAME} (Android)")
                     .header("Accept", "application/json")
                 when (method.uppercase()) {
                     "POST" -> requestBuilder.post(body ?: "".toRequestBody("text/plain".toMediaType()))
@@ -1392,7 +1392,7 @@ class JellyfinApiClient(context: Context) {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_USER_ID = "user_id"
 
-        private const val CLIENT_NAME = "Rhythm"
+        private const val CLIENT_NAME = "LaHo"
         private const val CLIENT_VERSION = "1.0"
         private const val DEVICE_NAME = "Android"
         private const val DEVICE_ID = "Rhythm-Android"

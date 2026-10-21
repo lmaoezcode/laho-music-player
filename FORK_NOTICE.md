@@ -49,6 +49,14 @@ contributors.
   1 to 2, schemas exported to `app/schemas`) and feeds genre/year to the mood
   index. MusicBrainz core data is CC0 and the service is free for non-commercial
   use; commercial use needs a MetaBrainz commercial plan.
+- 2026-10-18: LaHo visual identity - new original adaptive launcher icon
+  (stylised "L" + waveform; vector foreground/background/monochrome), splash and
+  in-app logo, status-bar icon (generator: `scripts/branding/gen_laho_icon.py`);
+  user-visible "Rhythm" product-name strings replaced with "LaHo" in all locales;
+  the About screen and README credit Rhythm (GPL-3.0) by Anjishnu Nandi with a
+  link to the upstream repository; network User-Agent / client names now say LaHo.
+  Drawable resource names (`rhythm_logo`, ...) are unchanged. The update checker
+  now reads releases of lmaoezcode/laho-music-player and is off by default.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

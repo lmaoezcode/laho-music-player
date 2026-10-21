@@ -134,7 +134,7 @@ fun HomeSectionOrderBottomSheet(
             "NEW_RELEASES" -> Pair("New Releases", MaterialSymbolIcon("new_releases"))
             "RECENTLY_ADDED" -> Pair("Recently Added", RhythmIcons.Music.Album)
             "RECOMMENDED" -> Pair("Recommended", MaterialSymbolIcon("recommend"))
-            "RHYTHM_GUARD" -> Pair("Rhythm Guard", RhythmIcons.Security)
+            "RHYTHM_GUARD" -> Pair("LaHo Guard", RhythmIcons.Security)
             "STATS" -> Pair("Listening Stats", MaterialSymbolIcon("insert_chart"))
             else -> Pair(sectionId, RhythmIcons.Music.Song)
         }

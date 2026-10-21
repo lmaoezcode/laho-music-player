@@ -1,37 +1,85 @@
-
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/icon.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/icon.png">
-  <img src="assets/icon_full.png" alt="Rhythm Music Player" width="220" style="border-radius: 32px; margin: 20px 0; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
-</picture>
+<img src="assets/icon.png" alt="LaHo Music Player icon" width="160">
 
-# Project Rhythm
-**Your Music, Your Rhythm.**
+# LaHo Music Player
+**Trình phát nhạc LaHo — a hi-fi Android music player for local libraries.**
 
-<a href="https://trendshift.io/repositories/15217" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15217" alt="cromaguy%2FRhythm | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+[![Platform](https://img.shields.io/badge/Android-8.0%2B-34A853?style=flat-square&logo=android&logoColor=white)](https://android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack_Compose-7c4dff?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
+[![License](https://img.shields.io/badge/License-GPL_v3-4285f4?style=flat-square)](LICENSE)
 
-[![Platform](https://img.shields.io/badge/Android-34A853?style=flat-square&logo=android&logoColor=white)](https://android.com)
-[![API Level](https://img.shields.io/badge/API-26%2B-4285f4?style=flat-square&logo=android&logoColor=white)](https://android-arsenal.com/api?level=26)
-[![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7c4dff?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
-[![License](https://img.shields.io/badge/License-GPL_v3-4285f4?style=flat-square)](docs/LICENSE)
-<br>
-[![Release](https://img.shields.io/github/v/release/cromaguy/Rhythm?style=flat-square&logo=github&color=673ab7&logoColor=white)](https://github.com/cromaguy/Rhythm/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/cromaguy/Rhythm/total?style=flat-square&logo=download&color=00bcd4&logoColor=white)](https://github.com/cromaguy/Rhythm/releases)
-[![Stars](https://img.shields.io/github/stars/cromaguy/Rhythm?style=flat-square&logo=star&color=ffc107&logoColor=white)](https://github.com/cromaguy/Rhythm/stargazers)
-[<img src="https://shields.rbtlog.dev/simple/chromahub.rhythm.app?style=flat-square" alt="RB shield">](https://shields.rbtlog.dev/chromahub.rhythm.app)
-[![Translation status](https://hosted.weblate.org/widget/rhythm/strings/svg-badge.svg)](https://hosted.weblate.org/engage/rhythm/)
-
-### [🌐 Website](https://rhythmweb.vercel.app/) • [▶️ Google Play](https://play.google.com/store/apps/details?id=chromahub.rhythm.play) • [📥 Download](https://github.com/cromaguy/Rhythm/releases/latest) • [🎧 Discord](https://discord.gg/XjPyUYPQYc) • [💬 Telegram](https://t.me/RhythmSupport) • [📖 Wiki](https://github.com/cromaguy/Rhythm/wiki)
+*Based on [Rhythm](https://github.com/cromaguy/Rhythm) (GPL-3.0) by Anjishnu Nandi.*
+*Dựa trên Rhythm (GPL-3.0) của Anjishnu Nandi.*
 
 </div>
 
 ---
 
-## 💖 Support the Developer
+## What is LaHo?
 
-Building and maintaining **Rhythm** is a massive labor of love, provided completely free and open-source. If you love using this app, please consider supporting development!
+LaHo Music Player is a graduation-thesis project: a fork of the open-source
+[Rhythm](https://github.com/cromaguy/Rhythm) player (Kotlin, Jetpack Compose,
+Material 3, Media3) extended with an audiophile playback path and AI features.
+Package namespace (`chromahub.rhythm.app`) is intentionally unchanged so that
+upstream fixes can still be merged; the application ID is `vn.laho.musicplayer`.
+
+### LaHo features
+
+- **Bit-perfect USB DAC output** - a userspace USB Audio Class driver
+  (no system mixer, no resampling) with automatic sample-rate / bit-depth
+  switching and gapless track changes.
+- **32-bit float parametric EQ (PEQ)** - float DSP pipeline with AutoEQ
+  preset import, kept in float end to end.
+- **AI assistant** - Vietnamese voice/text commands (offline parser first,
+  Gemini function calling via Firebase AI Logic as fallback) to play, search
+  and control the library.
+- **Mood index** - on-device audio features plus Gemini classification give
+  every track a mood, so you can ask for "nhạc buồn" or "energetic" playlists.
+- Everything from Rhythm: Material 3 UI, synced lyrics, library tools, widgets,
+  streaming (Subsonic/Jellyfin), and more (see below).
+
+## Build
+
+Requirements: JDK 17, Android SDK with `compileSdk 37`, NDK `29.0.14206865`
+and CMake `3.22.1` (installed through the SDK Manager).
+
+```bash
+git clone --recurse-submodules https://github.com/lmaoezcode/laho-music-player.git
+cd laho-music-player
+# if you cloned without --recurse-submodules:
+git submodule update --init third_party/flac
+
+# put your Android SDK path in local.properties (sdk.dir=...)
+./gradlew testGithubDebugUnitTest --tests "vn.laho.musicplayer.*" assembleGithubDebug
+```
+
+The debug APK is written to `app/build/outputs/apk/github/debug/` (prefix `LaHo-`,
+application ID `vn.laho.musicplayer.debug`). The Gemini features (assistant, mood index) need a `google-services.json` for your own Firebase
+project in `app/src/debug/` (git-ignored); builds without it still succeed, with those features unavailable.
+
+## Credits & licenses
+
+LaHo Music Player is free software under the **GNU GPL v3.0 or later** ([LICENSE](LICENSE)).
+See [FORK_NOTICE.md](FORK_NOTICE.md) for the full list of changes.
+
+| Component | Author | License |
+| :-- | :-- | :-- |
+| [Rhythm](https://github.com/cromaguy/Rhythm) - the base application | Anjishnu Nandi and contributors | GPL-3.0 |
+| [decent-player](https://github.com/neonteamcc/decent-player) USB audio driver (`third_party/decent-usb-audio`) | neonteamcc | MIT |
+| [libFLAC / xiph flac](https://github.com/xiph/flac) 1.5.0 (`third_party/flac`) | Xiph.Org Foundation | BSD-3-Clause |
+| [AndroidX Media3](https://github.com/androidx/media) (ExoPlayer, session, UI) | Google | Apache-2.0 |
+| [Jellyfin Media3 FFmpeg decoder](https://github.com/jellyfin/jellyfin-androidx-media) (bundles FFmpeg) | Jellyfin contributors / FFmpeg project | Apache-2.0 wrapper; FFmpeg under LGPL-2.1+ |
+| Other libraries | see *Settings > About > Open source libraries* in the app | various |
+
+FFmpeg is used as a dynamically bundled decoder library (LGPL); its sources and
+license texts are available from the projects linked above.
+
+---
+
+## 💖 Support the original author
+
+Rhythm, the project LaHo is based on, is built and maintained by Anjishnu Nandi (cromaguy). Building and maintaining **Rhythm** is a massive labor of love, provided completely free and open-source. If you love using this app, please consider supporting development!
 
 <div align="center">
 
@@ -43,7 +91,7 @@ Building and maintaining **Rhythm** is a massive labor of love, provided complet
 
 ---
 
-## ✨ Why Choose Rhythm?
+## ✨ Inherited from Rhythm
 
 Rhythm is a modern, open-source music player built with **Material 3 Expressive** design. It delivers professional-grade audio with High-Resolution playback, EAC3-JOC/Dolby Atmos via FFmpeg, and completely respects your privacy.
 

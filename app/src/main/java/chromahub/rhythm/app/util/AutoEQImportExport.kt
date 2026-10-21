@@ -255,7 +255,7 @@ object AutoEQImportExport {
     fun exportToJSON(profiles: List<AutoEQProfile>): String {
         return gson.toJson(mapOf(
             "version" to 1,
-            "source" to "Rhythm App Export",
+            "source" to "LaHo Music Player Export",
             "bandFrequencies" to BAND_FREQUENCIES,
             "profiles" to profiles
         ))
@@ -370,7 +370,7 @@ object AutoEQImportExport {
     fun generateShareableText(profile: AutoEQProfile): String {
         val bandsStr = profile.bands.joinToString(",") { it.round(1).toString() }
         return buildString {
-            appendLine("# Rhythm EQ Profile")
+            appendLine("# LaHo EQ Profile")
             appendLine("Name: ${profile.name}")
             appendLine("Brand: ${profile.brand}")
             appendLine("Type: ${profile.type}")

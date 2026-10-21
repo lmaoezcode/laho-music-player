@@ -4,9 +4,9 @@
     <string name="home">Avaleht</string>
     <string name="library">Muusikakogu</string>
     <string name="search">Otsi</string>
-    <string name="media3_notification_channel_name">Hetkel esitamisel Rhythm\'is</string>
+    <string name="media3_notification_channel_name">Hetkel esitamisel LaHo\'is</string>
     <string name="media3_notification_channel_description">Esiplaanil olevad taasesituse juhtnupud, kerimine ja kaanepildid</string>
-    <string name="widget_name_glance">Rhythm\'i Muusika</string>
+    <string name="widget_name_glance">LaHo\'i Muusika</string>
     <string name="unknown_artist">Tundmatu esitaja</string>
     <string name="play_pause">Esita/Peata esitus</string>
     <string name="settings_widget">Vidin</string>
@@ -128,10 +128,10 @@
     <string name="settings_my_playlists">Minu esitusloendid</string>
     <string name="settings_no_custom_playlists">Sinu koostatud esitusloendeid pole</string>
     <string name="notification_updater_downloading">Laadin uuendust alla: %1$d%%</string>
-    <string name="notification_updater_title">Rhythmi tarkvarauuendus</string>
+    <string name="notification_updater_title">LaHo tarkvarauuendus</string>
     <string name="notification_updater_download_complete">Uuendus on paigalduseks valmis. Jätkamiseks klõpsa.</string>
     <string name="notification_updater_available_title">Uuendus on saadaval</string>
-    <string name="notification_updater_available_text">Saadaval on Rhythmi uus versioon.</string>
+    <string name="notification_updater_available_text">Saadaval on LaHo uus versioon.</string>
     <string name="dialog_delete">Kustuta</string>
     <string name="dialog_cancel">Tühista</string>
     <string name="action_switch">Vaheta</string>

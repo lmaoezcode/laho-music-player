@@ -221,7 +221,7 @@ object DeviceCapabilitiesProvider {
         val sys = getSystemSummary(context)
 
         return buildString {
-            appendLine("=== Rhythm Audio & Device Diagnostics ===")
+            appendLine("=== LaHo Audio & Device Diagnostics ===")
             appendLine("Device: ${sys.brand} ${sys.model} (${sys.hardware})")
             appendLine("Android OS: ${sys.androidVersion} (API ${sys.sdkInt})")
             appendLine("RAM: ${Formatter.formatShortFileSize(context, sys.availableRamBytes)} free of ${Formatter.formatShortFileSize(context, sys.totalRamBytes)}")
