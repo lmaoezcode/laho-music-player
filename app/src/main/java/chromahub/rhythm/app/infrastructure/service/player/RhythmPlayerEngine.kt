@@ -447,15 +447,17 @@ class RhythmPlayerEngine(
             HiFiCapabilityChecker.isSupported() &&
             !hasActiveProcessors
 
-        // LaHo: float DSP sink. Disabled in bit-perfect ("app" routing) mode, where no DSP
-        // may touch the signal.
-        // LaHo: userspace USB DAC driver (bit-perfect on Android 10+). Takes priority over the
-        // DSP, and only the primary player streams to the DAC.
-        val useLahoUsb = primary && vn.laho.musicplayer.usb.LahoUsbAudio.isEnabled(appSettings)
+        // LaHo: one decision for the output path (USB DAC driver > float DSP > standard).
+        // Only the primary player streams to the DAC; bit-perfect "app" routing forbids any DSP.
+        val lahoMode = vn.laho.musicplayer.audio.AudioOutputPolicy.resolve(
+            usbRequested = vn.laho.musicplayer.usb.LahoUsbAudio.isEnabled(appSettings),
+            dspRequested = appSettings.lahoDspEnabled.value,
+            systemBitPerfect = appSettings.audioRoutingMode.value == "app",
+            primary = primary,
+        )
+        val useLahoUsb = lahoMode == vn.laho.musicplayer.audio.AudioOutputMode.USB_BIT_PERFECT
         if (primary) lahoUsbSinkActive = useLahoUsb
-        val useLahoDsp = appSettings.lahoDspEnabled.value &&
-            appSettings.audioRoutingMode.value != "app" &&
-            !vn.laho.musicplayer.usb.LahoUsbAudio.isEnabled(appSettings)
+        val useLahoDsp = lahoMode == vn.laho.musicplayer.audio.AudioOutputMode.DSP_FLOAT
 
         val mediaCodecSelector = MediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
             val defaultDecoders = MediaCodecSelector.DEFAULT.getDecoderInfos(
