@@ -960,6 +960,10 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
                 updatePlaybackQuality()
             }
         }
+        serviceScope.launch {
+            // LaHo: refresh the quality sheet when the USB driver's signal path changes
+            vn.laho.musicplayer.usb.LahoUsbAudio.signalPath.collect { updatePlaybackQuality() }
+        }
         applyUsbExclusiveRoutingPreference()
         
         // The master player is exposed to MediaSession and used everywhere
@@ -3072,7 +3076,10 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
                 iconResId = resolvedIcon
             )
 
-            _currentPlaybackQuality.value = qualityInfo
+            // LaHo: USB driver / float DSP signal path (no-op in Rhythm's own modes)
+            _currentPlaybackQuality.value = vn.laho.musicplayer.signal.LahoSignalPath.applyTo(
+                qualityInfo, vn.laho.musicplayer.signal.LahoSignalPath.current(appSettings)
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Error calculating playback quality telemetry", e)
         }

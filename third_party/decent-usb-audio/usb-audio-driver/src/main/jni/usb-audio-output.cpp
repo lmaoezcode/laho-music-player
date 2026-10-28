@@ -417,6 +417,21 @@ Java_com_decent_usbaudio_UsbAudioStream_nativeUsbAudioCreate(
     int microframesPerPacket = (interval >= 1 && interval <= 4) ? (1 << (interval - 1)) : 1;
     LOGI("Create: fd=%d ep=0x%02x rate=%d ch=%d bits=%d maxPkt=%d bInterval=%d (%d uframe/pkt)",
          fd, epOut, rate, ch, bits, maxPkt, interval, microframesPerPacket);
+    // LaHo: refuse configurations whose largest packet would overflow the URB buffer
+    // (the packetizer memcpy()s a whole URB into it). Kotlin checks this first
+    // (UsbRatePolicy); this is the last line of defence against a heap overflow.
+    {
+        int maxFrames = (int)((double)rate / 8000.0 * microframesPerPacket) + 1;
+        int maxPacketBytes = maxFrames * (bits / 8) * ch;
+        if (maxPacketBytes * USB_AUDIO_PACKETS_PER_URB > USB_AUDIO_URB_BUFFER_SIZE) {
+            LOGE("Create: %d B/packet x %d packets exceeds URB buffer %d B (rate=%d bits=%d ch=%d)",
+                 maxPacketBytes, USB_AUDIO_PACKETS_PER_URB, USB_AUDIO_URB_BUFFER_SIZE, rate, bits, ch);
+            return 0;
+        }
+        if (maxPkt > 0 && maxPacketBytes > maxPkt) {
+            LOGW("Create: %d B/packet may exceed wMaxPacketSize %d", maxPacketBytes, maxPkt);
+        }
+    }
     auto *ctx = new(std::nothrow) UsbAudioContext();
     if (!ctx) return 0;
     ctx->fd = fd;

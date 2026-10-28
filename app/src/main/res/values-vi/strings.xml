@@ -2547,4 +2547,35 @@
     <string name="laho_assistant_title">Trợ lý LaHo</string>
     <string name="laho_assistant_entry">Trợ lý LaHo (thử nghiệm)</string>
     <string name="laho_assistant_entry_desc">Điều khiển nhạc bằng chữ hoặc giọng nói: chuyển bài, tạm dừng, âm lượng, phát bài trong thư viện. Chạy được khi không có mạng.</string>
+    <!-- LaHo: signal path / USB hi-res -->
+    <string name="laho_signal_path_title">Đường tín hiệu</string>
+    <string name="laho_signal_mode">Chế độ</string>
+    <string name="laho_signal_mode_usb">Driver USB LaHo (bỏ qua bộ trộn Android)</string>
+    <string name="laho_signal_mode_usb_fallback">Pipeline Android (không dùng driver USB LaHo)</string>
+    <string name="laho_signal_mode_dsp">LaHo DSP (qua bộ trộn Android)</string>
+    <string name="laho_signal_engine">Bộ giải mã</string>
+    <string name="laho_signal_engine_native_flac">FLAC gốc (libFLAC → USB)</string>
+    <string name="laho_signal_engine_exoplayer">ExoPlayer → USB</string>
+    <string name="laho_signal_rate">Tần số luồng</string>
+    <string name="laho_signal_rate_dac">%1$s (DAC: %2$s)</string>
+    <string name="laho_signal_bits">Độ sâu bit</string>
+    <string name="laho_signal_bits_value">%1$d-bit → %2$d-bit USB</string>
+    <string name="laho_signal_dac">DAC</string>
+    <string name="laho_signal_bit_perfect">Bit-perfect</string>
+    <string name="laho_signal_bit_perfect_yes">Có: không resample, không chỉnh âm lượng, không DSP</string>
+    <string name="laho_signal_bit_perfect_no">Không</string>
+    <string name="laho_signal_dac_rates">Tần số DAC hỗ trợ</string>
+    <string name="laho_signal_fallback">%1$s không phát được qua driver USB (%2$s). Đang phát qua Android.</string>
+    <string name="laho_signal_processing">Xử lý</string>
+    <string name="laho_signal_dsp_peq">float 32-bit, PEQ %1$d băng</string>
+    <string name="laho_signal_dsp_peq_off">float 32-bit, PEQ tắt</string>
+    <string name="laho_badge_bit_perfect">BIT-PERFECT</string>
+    <string name="laho_badge_usb">USB DAC</string>
+    <string name="laho_badge_peq">PEQ %1$d</string>
+    <string name="laho_badge_dsp">DSP 32F</string>
+    <string name="laho_usb_fallback_toast">DAC USB: không phát được %1$s (%2$s), đang phát qua Android</string>
+    <string name="laho_usb_reason_rate_not_supported">DAC không hỗ trợ tần số này</string>
+    <string name="laho_usb_reason_packet_too_large">gói USB quá lớn so với DAC</string>
+    <string name="laho_usb_reason_rate_not_applied">DAC không chuyển tần số</string>
+    <string name="laho_usb_reason_stream_failed">luồng USB không khởi động được</string>
 </resources>

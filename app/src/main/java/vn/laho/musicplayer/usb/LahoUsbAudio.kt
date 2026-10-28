@@ -14,10 +14,25 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import android.widget.Toast
+import chromahub.rhythm.app.R
 import chromahub.rhythm.app.shared.data.model.AppSettings
+import chromahub.rhythm.app.shared.data.model.PlaybackQualityInfo
 import com.decent.usbaudio.UsbAudioDevice
 import com.decent.usbaudio.UsbAudioPermissionHelper
 import com.decent.usbaudio.media3.UsbAudioSink
+import com.decent.usbaudio.media3.UsbSignalPath
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import vn.laho.musicplayer.signal.LahoSignalPath
+import vn.laho.musicplayer.signal.SignalPathInfo
 
 /**
  * Glue between LaHo and the vendored decent-player USB Audio Class 2.0 driver
@@ -42,6 +57,19 @@ object LahoUsbAudio {
 
     @Volatile
     private var currentSink: AudioSink? = null
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var relayJob: Job? = null
+    private val _signalPath = MutableStateFlow(UsbSignalPath.INACTIVE)
+
+    /**
+     * Signal path of the USB sink of the primary player (rate, bit depth, engine, DAC,
+     * bit-perfect, fallback). Survives sink re-creation; INACTIVE when no stream runs.
+     */
+    val signalPath: StateFlow<UsbSignalPath> = _signalPath.asStateFlow()
+
+    /** Last fallback the user was told about, so a toast is shown once per track change. */
+    private var lastToastedFallback: Pair<Int, Any?>? = null
 
     /**
      * Call from the main activity. A USB_DEVICE_ATTACHED intent is handled immediately so the
@@ -89,6 +117,47 @@ object LahoUsbAudio {
         Log.i(TAG, "USB sink attached to primary player")
     }
 
+    @OptIn(UnstableApi::class)
+    private fun relay(appContext: Context, sink: UsbAudioSink) {
+        relayJob?.cancel()
+        relayJob = scope.launch {
+            sink.signalPath.collect { path ->
+                _signalPath.value = path
+                notifyFallback(appContext, path)
+            }
+        }
+    }
+
+    /** Tells the user (once per rate/reason) that a track left the bit-perfect USB path. */
+    private suspend fun notifyFallback(appContext: Context, path: UsbSignalPath) {
+        if (path.active) {
+            lastToastedFallback = null
+            return
+        }
+        val reason = path.fallbackReason ?: return
+        val key = path.fallbackRateHz to reason
+        if (key == lastToastedFallback) return
+        lastToastedFallback = key
+        val message = appContext.getString(
+            R.string.laho_usb_fallback_toast,
+            PlaybackQualityInfo.formatSampleRate(path.fallbackRateHz),
+            appContext.getString(fallbackReasonText(LahoSignalPath.map(reason)))
+        )
+        Log.w(TAG, message)
+        withContext(Dispatchers.Main) {
+            Toast.makeText(appContext, message, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /** String resource explaining a fallback reason (shared with the quality sheet). */
+    fun fallbackReasonText(reason: SignalPathInfo.FallbackReason?): Int = when (reason) {
+        SignalPathInfo.FallbackReason.RATE_NOT_SUPPORTED -> R.string.laho_usb_reason_rate_not_supported
+        SignalPathInfo.FallbackReason.PACKET_TOO_LARGE,
+        SignalPathInfo.FallbackReason.URB_BUFFER_TOO_SMALL -> R.string.laho_usb_reason_packet_too_large
+        SignalPathInfo.FallbackReason.RATE_NOT_APPLIED -> R.string.laho_usb_reason_rate_not_applied
+        SignalPathInfo.FallbackReason.STREAM_FAILED, null -> R.string.laho_usb_reason_stream_failed
+    }
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun handleIntentApi29(context: Context, intent: Intent) {
         val claimed = UsbAudioPermissionHelper.handleIntent(context.applicationContext, intent)
@@ -128,6 +197,7 @@ object LahoUsbAudio {
             .build()
         return UsbAudioSink(delegate, context.applicationContext).also {
             currentSink = it
+            relay(context.applicationContext, it)
             Log.i(TAG, "USB bit-perfect sink created")
         }
     }

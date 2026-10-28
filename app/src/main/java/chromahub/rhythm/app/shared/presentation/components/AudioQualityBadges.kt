@@ -38,6 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import chromahub.rhythm.app.R
+import vn.laho.musicplayer.signal.SignalPathInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 
@@ -478,6 +479,28 @@ fun AudioQualityBadges(
                     }
 
                     AudioQualityDetector.QualityType.UNKNOWN -> {}
+                }
+
+                // LaHo: output-path badge (bit-perfect USB driver / float PEQ)
+                playbackQuality?.lahoSignalPath?.let { path ->
+                    val text = when (path.badge) {
+                        SignalPathInfo.Badge.BIT_PERFECT -> stringResource(R.string.laho_badge_bit_perfect)
+                        SignalPathInfo.Badge.USB -> stringResource(R.string.laho_badge_usb)
+                        SignalPathInfo.Badge.PEQ -> stringResource(R.string.laho_badge_peq, path.peqBandCount)
+                        SignalPathInfo.Badge.DSP -> stringResource(R.string.laho_badge_dsp)
+                        SignalPathInfo.Badge.NONE -> null
+                    }
+                    if (text != null) {
+                        QualityBadge(
+                            text = text,
+                            icon = MaterialSymbolIcon(
+                                if (path.mode == SignalPathInfo.Mode.LAHO_DSP) "tune" else "usb",
+                                filled = true
+                            ),
+                            qualityLevel = if (path.badge == SignalPathInfo.Badge.BIT_PERFECT) QualityLevel.EXCELLENT else QualityLevel.GOOD,
+                            onClick = onClick
+                        )
+                    }
                 }
             }
         }

@@ -267,6 +267,13 @@ class UsbAudioDevice private constructor(private val context: Context) {
         Log.i(TAG, "Auto-detected: clockSourceId=0x${clockSourceId.toString(16)}, " +
                 "bestAlt=$bestAlt, bestBits=$bestBits")
 
+        // LaHo: rates the clock source accepts (UAC2 GET RANGE) and per-alt packet limits,
+        // so UsbAudioSink can refuse a rate up front instead of streaming garbage/silence.
+        val supportedRanges = if (clockSourceId > 0) readSampleRateRanges(conn, clockSourceId) else null
+        val altFormats = conn.rawDescriptors?.let { Uac2Descriptors.parseStreamingAltFormats(it) }.orEmpty()
+        Log.i(TAG, "Clock source ranges=$supportedRanges " +
+                "(common rates: ${UsbRatePolicy.supportedRates(supportedRanges)}), altFormats=$altFormats")
+
         val info = UsbAudioDeviceInfo(
                 connection = conn,
                 fd = fd,
@@ -279,7 +286,9 @@ class UsbAudioDevice private constructor(private val context: Context) {
                 altSettingCount = altSettingCount,
                 clockSourceId = clockSourceId,
                 bestAltSetting = bestAlt,
-                bestBitDepth = bestBits
+                bestBitDepth = bestBits,
+                supportedSampleRates = supportedRanges,
+                altFormats = altFormats
         )
         cachedDeviceInfo = info
         return info
@@ -559,6 +568,56 @@ class UsbAudioDevice private constructor(private val context: Context) {
         }
         Log.w(TAG, "readSampleRate: all GET_CUR attempts failed")
         return -1
+    }
+
+    /**
+     * LaHo: read the sample rates the clock source supports via UAC2 GET RANGE
+     * (bmRequestType 0xA1, bRequest 0x02 RANGE, wValue CS_SAM_FREQ_CONTROL << 8,
+     * wIndex clockId << 8 | AC interface 0).
+     *
+     * Asks for the 2-byte sub-range count first, then for the full block (the approach
+     * Linux snd-usb-audio uses); some DACs only answer one of the two forms, so a single
+     * large read is tried as a fallback.
+     *
+     * @return the sub-ranges, or null if the DAC did not answer.
+     */
+    private fun readSampleRateRanges(conn: UsbDeviceConnection, clockSourceId: Int): List<SampleRateRange>? {
+        val wIndex = (clockSourceId shl 8) or 0
+        fun request(len: Int): Pair<ByteArray, Int> {
+            val buf = ByteArray(len)
+            val ret = conn.controlTransfer(0xA1, 0x02, 0x0100, wIndex, buf, len, 1000)
+            return buf to ret
+        }
+        try {
+            val (head, headRet) = request(2)
+            if (headRet >= 2) {
+                val count = (head[0].toInt() and 0xFF) or ((head[1].toInt() and 0xFF) shl 8)
+                if (count in 1..64) {
+                    val (full, fullRet) = request(Uac2Descriptors.rangeReplyLength(count))
+                    Uac2Descriptors.parseSampleRateRanges(full, fullRet)?.let { return it }
+                }
+            }
+            val (big, bigRet) = request(Uac2Descriptors.rangeReplyLength(32))
+            val ranges = Uac2Descriptors.parseSampleRateRanges(big, bigRet)
+            if (ranges == null) Log.w(TAG, "readSampleRateRanges: GET RANGE not answered (ret=$headRet/$bigRet)")
+            return ranges
+        } catch (e: Exception) {
+            Log.w(TAG, "readSampleRateRanges failed: ${e.message}")
+            return null
+        }
+    }
+
+    /**
+     * LaHo: SET_CUR followed by a GET_CUR read-back.
+     * @return the rate the DAC reports after the change, or -1 if it does not answer GET_CUR.
+     */
+    fun setSampleRateVerified(sampleRateHz: Int): Int {
+        setSampleRate(sampleRateHz)
+        val readBack = readSampleRate()
+        if (readBack > 0 && readBack != sampleRateHz) {
+            Log.w(TAG, "setSampleRateVerified: requested $sampleRateHz Hz, DAC reports $readBack Hz")
+        }
+        return readBack
     }
 
     /**

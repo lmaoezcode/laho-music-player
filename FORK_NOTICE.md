@@ -35,6 +35,14 @@ contributors.
 - 2026-10-18: added an automatic mood index (`vn.laho.musicplayer.mood`: offline
   audio features, Gemini classification, own Room database) and the assistant's
   `play_by_mood` tool.
+- 2026-10-29: USB hi-res (88.2-192 kHz) and signal-path display: the vendored
+  driver checks the DAC's rates (UAC2 GET RANGE), the isochronous packet size and
+  the SET_CUR read-back, and falls back to Android's pipeline with a message when a
+  rate cannot be streamed (details in `third_party/decent-usb-audio/README.md`);
+  new `vn.laho.musicplayer.signal` package; hooks in `PlaybackQualityInfo`
+  (`lahoSignalPath` field), `MediaPlaybackService.updatePlaybackQuality`,
+  `PlaybackQualityBottomSheet` ("Signal path" card), `AudioQualityBadges`
+  (bit-perfect / PEQ badge) and `strings.xml` (en, vi).
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

@@ -18,5 +18,12 @@ data class UsbAudioDeviceInfo(
     val altSettingCount: Int,
     val clockSourceId: Int,
     val bestAltSetting: Int,
-    val bestBitDepth: Int
-)
+    val bestBitDepth: Int,
+    /** LaHo: clock source GET RANGE (CS_SAM_FREQ_CONTROL); null if the DAC did not answer. */
+    val supportedSampleRates: List<SampleRateRange>? = null,
+    /** LaHo: per-alt format and ISO OUT endpoint (wMaxPacketSize, bInterval) from descriptors. */
+    val altFormats: List<UsbAltFormat> = emptyList()
+) {
+    /** LaHo: format of [altSetting], or null if the descriptors did not describe it. */
+    fun altFormat(altSetting: Int): UsbAltFormat? = altFormats.firstOrNull { it.altSetting == altSetting }
+}

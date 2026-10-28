@@ -2963,4 +2963,35 @@
     <string name="eq_device_no_profile">No AutoEQ profile linked</string>
     <string name="eq_manage_all_devices">Manage Devices</string>
     <string name="eq_reorder">Reorder</string>
+    <!-- LaHo: signal path / USB hi-res -->
+    <string name="laho_signal_path_title">Signal path</string>
+    <string name="laho_signal_mode">Mode</string>
+    <string name="laho_signal_mode_usb">LaHo USB driver (Android mixer bypassed)</string>
+    <string name="laho_signal_mode_usb_fallback">Android pipeline (LaHo USB driver not used)</string>
+    <string name="laho_signal_mode_dsp">LaHo DSP (Android mixer)</string>
+    <string name="laho_signal_engine">Decoder</string>
+    <string name="laho_signal_engine_native_flac">Native FLAC (libFLAC → USB)</string>
+    <string name="laho_signal_engine_exoplayer">ExoPlayer → USB</string>
+    <string name="laho_signal_rate">Stream rate</string>
+    <string name="laho_signal_rate_dac">%1$s (DAC: %2$s)</string>
+    <string name="laho_signal_bits">Bit depth</string>
+    <string name="laho_signal_bits_value">%1$d-bit → %2$d-bit USB</string>
+    <string name="laho_signal_dac">DAC</string>
+    <string name="laho_signal_bit_perfect">Bit-perfect</string>
+    <string name="laho_signal_bit_perfect_yes">Yes: no resampling, no volume, no DSP</string>
+    <string name="laho_signal_bit_perfect_no">No</string>
+    <string name="laho_signal_dac_rates">Rates the DAC accepts</string>
+    <string name="laho_signal_fallback">%1$s cannot use the USB driver (%2$s). Playing through Android.</string>
+    <string name="laho_signal_processing">Processing</string>
+    <string name="laho_signal_dsp_peq">float 32-bit, PEQ %1$d bands</string>
+    <string name="laho_signal_dsp_peq_off">float 32-bit, PEQ off</string>
+    <string name="laho_badge_bit_perfect">BIT-PERFECT</string>
+    <string name="laho_badge_usb">USB DAC</string>
+    <string name="laho_badge_peq">PEQ %1$d</string>
+    <string name="laho_badge_dsp">DSP 32F</string>
+    <string name="laho_usb_fallback_toast">USB DAC: %1$s not possible (%2$s), playing through Android</string>
+    <string name="laho_usb_reason_rate_not_supported">the DAC does not support this rate</string>
+    <string name="laho_usb_reason_packet_too_large">USB packet too large for the DAC</string>
+    <string name="laho_usb_reason_rate_not_applied">the DAC did not switch rate</string>
+    <string name="laho_usb_reason_stream_failed">the USB stream did not start</string>
 </resources>

@@ -49,6 +49,32 @@ The AGPL proof-of-concept app in upstream `driver/Felicity/` is **not** included
   `NegativeArraySizeException` in `TrimmingAudioProcessor.onFlush` (Media3 1.11) and the
   player stopped. `UsbAudioSink` now strips `encoderDelay`/`encoderPadding` from the format
   it forwards to the delegate (the delegate's output is discarded anyway).
+- **Hi-res rates (88.2-192 kHz) are checked before streaming** (new
+  `UsbAudioCapabilities.kt`, pure Kotlin, unit-tested in the app):
+  - `UsbAudioDevice.openDevice` reads the clock source's supported rates with UAC2
+    GET RANGE (`bmRequestType 0xA1`, `bRequest 0x02`, `CS_SAM_FREQ_CONTROL`, on the
+    clock ID parsed from the descriptors) and parses every streaming alt setting's
+    Format Type I and ISO OUT endpoint (`wMaxPacketSize`, `bInterval`) from the raw
+    descriptors. Both are carried in `UsbAudioDeviceInfo`.
+  - `UsbAudioSink.configureUsbBitPerfect` refuses a rate that GET RANGE does not list,
+    or whose largest packet (`(floor(rate/8000 x 2^(bInterval-1)) + 1) x bytesPerFrame`)
+    exceeds the streaming alt's `wMaxPacketSize` or the native URB buffer. The stream
+    now uses the `bInterval` of the alt setting it streams on (was: the first alt's).
+  - After SET_CUR the rate is read back with GET_CUR (`setSampleRateVerified`); a DAC
+    reporting another rate is refused. A DAC that does not answer GET RANGE / GET_CUR
+    is still attempted (as before).
+  - **Fallback instead of silence:** when the rate is refused or the stream cannot be
+    opened/started (upstream returned silently and left the delegate muted), the sink
+    releases the stream, unmutes the delegate, clears the forced speaker routing and
+    configures it normally, so the track plays through Android's pipeline. The reason
+    is published in `signalPath`; the app shows a toast and the quality sheet.
+  - Native: `USB_AUDIO_URB_BUFFER_SIZE` 4096 -> 8192 (192 kHz 32-bit stereo with
+    `bInterval=2` already needs 3136 B per URB), and `nativeUsbAudioCreate` refuses a
+    configuration whose URB would overflow the buffer.
+- **`UsbAudioSink.signalPath: StateFlow<UsbSignalPath>`** (new `UsbSignalPath.kt`): stream
+  rate, DAC-reported rate, source/USB bit depth, engine (native FLAC or ExoPlayer), DAC
+  name, bit-perfect flag, fallback reason. The wrapper module now depends on
+  kotlinx-coroutines-core (`api`).
 - CMake: `HAVE_FSEEKO=1` for the libFLAC target so 32-bit ABIs build (libFLAC's own
   check forces it off and `compat.h` then clashes with bionic's `fseeko`).
 
