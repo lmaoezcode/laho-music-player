@@ -57,6 +57,18 @@ contributors.
   link to the upstream repository; network User-Agent / client names now say LaHo.
   Drawable resource names (`rhythm_logo`, ...) are unchanged. The update checker
   now reads releases of lmaoezcode/laho-music-player and is off by default.
+- 2026-10-29: multi-step assistant agent. New tools `create_playlist` /
+  `play_playlist` (Rhythm's Room `playlists` + `playlist_songs` tables, the app
+  reloads them through its existing playlist-changed broadcast), `queue_add` /
+  `queue_clear` (Media3 queue), `sleep_timer` (Rhythm's `MediaPlaybackService`
+  sleep timer), `play_downloaded` and `plan_steps`, behind the small gateways
+  `QueueGateway` / `PlaylistGateway` / `SleepTimerGateway` implemented by
+  `MediaControllerGateway`. A request may chain up to 6 steps ("tìm X trên
+  drive, tải về rồi phát"): the offline parser splits simple "rồi / sau đó"
+  chains, and the Gemini loop no longer returns after the first action when more
+  steps are expected. Progress is shown per step in the chat; `drive_download`
+  and `queue_clear` pause the chain and ask "có/không" (the model can never
+  confirm for the user); Drive file names stay data, never instructions.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

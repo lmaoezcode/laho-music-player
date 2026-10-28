@@ -94,7 +94,7 @@ class AssistantBenchmark(
             val tools = ToolRegistry.default(DryRunGateway(realGateway))
             val assistant = GeminiAssistant(backendFor(model))
             val start = clock()
-            val reply = assistant.handle(case.prompt, tools)
+            val reply = assistant.handle(case.prompt, tools, vn.laho.musicplayer.assistant.AgentListener.NONE)
             val ms = (clock() - start) / 1_000_000
             val quotaHit = reply.source == AssistantReply.Source.NONE && "hết lượt" in reply.text
             if (quotaHit && attempt++ < 2) {

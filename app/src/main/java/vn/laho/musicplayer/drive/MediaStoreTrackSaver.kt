@@ -64,7 +64,7 @@ class MediaStoreTrackSaver(context: Context) : TrackSaver {
             withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) { runCatching { resolver.delete(uri, null, null) } }
             throw e
         }
-        return SavedTrack(displayName, "${Environment.DIRECTORY_MUSIC}/$SUBDIR/$displayName")
+        return SavedTrack(displayName, "${Environment.DIRECTORY_MUSIC}/$SUBDIR/$displayName", uri.toString())
     }
 
     @Suppress("DEPRECATION")
@@ -88,7 +88,7 @@ class MediaStoreTrackSaver(context: Context) : TrackSaver {
             throw e
         }
         scan(target, mimeType)
-        return SavedTrack(target.name, target.path)
+        return SavedTrack(target.name, target.path, android.net.Uri.fromFile(target).toString())
     }
 
     private suspend fun scan(file: File, mimeType: String) {

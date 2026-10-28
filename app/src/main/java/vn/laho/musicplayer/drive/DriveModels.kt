@@ -18,7 +18,8 @@ data class DriveFile(
 }
 
 /** Where a downloaded song ended up (display name + a URI or path for logs/messages). */
-data class SavedTrack(val displayName: String, val location: String)
+/** [uri] is a playable content/file URI when the saver knows it (used by play_downloaded). */
+data class SavedTrack(val displayName: String, val location: String, val uri: String? = null)
 
 /** The user has not granted Drive access yet (or the grant expired and needs the consent UI). */
 class DriveAuthRequiredException(message: String = "Google Drive authorization required") : IOException(message)

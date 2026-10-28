@@ -14,7 +14,12 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import chromahub.rhythm.app.features.local.data.database.RhythmDatabase
 import chromahub.rhythm.app.features.local.data.database.entity.toSong
+import android.content.Intent
+import android.net.Uri
+import chromahub.rhythm.app.features.local.data.database.entity.PlaylistEntity
+import chromahub.rhythm.app.features.local.data.database.entity.PlaylistSongEntity
 import chromahub.rhythm.app.infrastructure.service.MediaPlaybackService
+import chromahub.rhythm.app.util.ServiceStartUtils
 import chromahub.rhythm.app.shared.data.model.Song
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.coroutines.resume
@@ -33,7 +38,7 @@ import kotlinx.coroutines.withContext
  * system media volume, and the scanned library in the Room database — so the assistant is
  * decoupled from the UI ViewModel.
  */
-class MediaControllerGateway(context: Context) : PlayerGateway {
+class MediaControllerGateway(context: Context) : PlayerGateway, QueueGateway, PlaylistGateway, SleepTimerGateway {
 
     private val appContext = context.applicationContext
     private val audioManager = appContext.getSystemService(AudioManager::class.java)
@@ -113,6 +118,78 @@ class MediaControllerGateway(context: Context) : PlayerGateway {
             artist = meta.artist?.toString().orEmpty().ifBlank { "Không rõ nghệ sĩ" },
             isPlaying = it.isPlaying,
         )
+    }
+
+    // --- QueueGateway -------------------------------------------------------------------
+
+    override suspend fun addToQueue(songs: List<LibrarySong>) {
+        if (songsById.isEmpty()) librarySongs()
+        val items = songs.mapNotNull { songsById[it.id]?.toMediaItem() }
+        require(items.isNotEmpty()) { "Songs are no longer in the library" }
+        onPlayer {
+            val wasEmpty = it.mediaItemCount == 0
+            it.addMediaItems(items)
+            if (wasEmpty) { it.prepare(); it.play() }
+        }
+    }
+
+    override suspend fun clearQueue(): Int = onPlayer {
+        val current = it.currentMediaItemIndex
+        val count = it.mediaItemCount
+        if (count <= 1 || current < 0) return@onPlayer 0
+        if (current + 1 < count) it.removeMediaItems(current + 1, count)
+        if (current > 0) it.removeMediaItems(0, current)
+        count - 1
+    }
+
+    override suspend fun queueSize(): Int = onPlayer { it.mediaItemCount }
+
+    override suspend fun playUri(uri: String, title: String) {
+        val item = MediaItem.Builder()
+            .setMediaId(uri)
+            .setUri(Uri.parse(uri))
+            .setMediaMetadata(MediaMetadata.Builder().setTitle(title).build())
+            .build()
+        onPlayer { it.setMediaItem(item); it.prepare(); it.play() }
+    }
+
+    // --- PlaylistGateway (Rhythm's Room tables) -----------------------------------------
+
+    private val playlistDao get() = RhythmDatabase.getInstance(appContext).playlistDao()
+
+    override suspend fun playlists(): List<PlaylistInfo> = withContext(Dispatchers.IO) {
+        playlistDao.getAllPlaylists().map { PlaylistInfo(it.id, it.name, playlistDao.getSongIdsForPlaylist(it.id).size) }
+    }
+
+    override suspend fun createPlaylist(name: String, songIds: List<String>): String = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
+        var id = now.toString()
+        while (playlistDao.getPlaylistById(id) != null) id = (id.toLong() + 1).toString()
+        playlistDao.insertPlaylist(PlaylistEntity(id, name, now, now, null))
+        playlistDao.insertPlaylistSongs(songIds.distinct().mapIndexed { i, sid -> PlaylistSongEntity(id, sid, i) })
+        // Same broadcast Rhythm uses when favourites change: MusicViewModel reloads playlists from Room.
+        appContext.sendBroadcast(
+            Intent("chromahub.rhythm.app.action.FAVORITE_CHANGED").setPackage(appContext.packageName),
+        )
+        id
+    }
+
+    override suspend fun songIds(playlistId: String): List<String> =
+        withContext(Dispatchers.IO) { playlistDao.getSongIdsForPlaylist(playlistId) }
+
+    // --- SleepTimerGateway (MediaPlaybackService) ---------------------------------------
+
+    override fun start(minutes: Int) = sendTimer(MediaPlaybackService.ACTION_START_SLEEP_TIMER) {
+        putExtra("duration", minutes * 60_000L)
+        putExtra("fadeOut", true)
+        putExtra("pauseOnly", false)
+    }
+
+    override fun cancel() = sendTimer(MediaPlaybackService.ACTION_STOP_SLEEP_TIMER) {}
+
+    private fun sendTimer(action: String, extras: Intent.() -> Unit) {
+        val intent = Intent(appContext, MediaPlaybackService::class.java).apply { this.action = action; extras() }
+        ServiceStartUtils.startServiceSafely(appContext, intent, "LahoAssistant", "assistant_sleep_timer")
     }
 
     fun release() {
