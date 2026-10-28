@@ -5,6 +5,7 @@
 
 package chromahub.rhythm.app.shared.presentation.screens.player
 
+import vn.laho.musicplayer.tv.tvInitialFocus
 import chromahub.rhythm.app.shared.presentation.components.icons.RhythmIcons
 import chromahub.rhythm.app.shared.presentation.components.icons.MaterialSymbolIcon
 import chromahub.rhythm.app.shared.presentation.components.icons.Icon
@@ -2745,7 +2746,8 @@ fun MaterialPlayerScreen(
                             isCompactWidth = isCompactWidth,
                             isCompactHeight = isCompactHeight,
                             isLoading = showLoaderInPlayPauseButton,
-                            modifier = Modifier.padding(
+                            // LaHo: TV opens the player with focus in the transport controls
+                            modifier = Modifier.tvInitialFocus().padding(
                                 horizontal = when {
                                     isExtraSmallWidth -> 10.dp
                                     isCompactWidth -> 16.dp

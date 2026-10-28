@@ -192,6 +192,11 @@ fun RhythmPlayerSheet(
         val sheetBackgroundColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = sheetBackgroundAlpha)
 
         val isTablet = windowScreenWidthDp() >= 600
+        // LaHo: on TV the alpha-0 half of the sheet must not be composed, or D-pad focus can
+        // land on invisible buttons (mini player behind the full player and vice versa).
+        val isTv = vn.laho.musicplayer.tv.rememberIsTv()
+        val composeMiniPlayer = !isTv || !(isExpanded && expansionFraction >= 1f)
+        val composeFullPlayer = !isTv || expansionFraction > 0f
 
         Box(
             modifier = Modifier
@@ -233,7 +238,7 @@ fun RhythmPlayerSheet(
                         }
                 }
 
-                Box(
+                if (composeMiniPlayer) Box(
                     modifier = miniPlayerContainerModifier
                 ) {
                     MiniPlayer(
@@ -252,12 +257,14 @@ fun RhythmPlayerSheet(
                 }
                 
                 // Expanded Player Content
-                Box(
+                if (composeFullPlayer) Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .zIndex(if (expansionFraction >= 0.5f) 1f else 0f)
                         .graphicsLayer { alpha = expansionFraction }
                         .clip(sheetShape)
+                        // LaHo: TV overscan-safe area (5% of 1080p) around the full player
+                        .then(if (isTv) Modifier.padding(horizontal = 48.dp, vertical = 27.dp) else Modifier)
                 ) {
                     PlayerScreen(
                         song = song,

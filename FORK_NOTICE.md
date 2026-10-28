@@ -35,6 +35,15 @@ contributors.
 - 2026-10-18: added an automatic mood index (`vn.laho.musicplayer.mood`: offline
   audio features, Gemini classification, own Room database) and the assistant's
   `play_by_mood` tool.
+- 2026-10-29: Android TV support in the same APK (`vn.laho.musicplayer.tv`):
+  leanback launcher entry, non-required touchscreen/leanback/bluetooth/wifi/
+  microphone features and a placeholder TV banner in the manifest; visible
+  D-pad focus via a one-line hook in `RhythmTheme`; remote media keys and the
+  search/voice key (opens the assistant with speech input) in `MainActivity`;
+  hidden halves of `RhythmPlayerSheet` are not composed on TV (no invisible
+  focus targets) plus an overscan-safe margin; initial focus on the play button
+  in `MaterialPlayerScreen` / `ExpressivePlayerScreen`; D-pad support in the
+  assistant chat. All of it is gated by a TV check, so phones are unchanged.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with
