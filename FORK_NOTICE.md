@@ -35,6 +35,14 @@ contributors.
 - 2026-10-18: added an automatic mood index (`vn.laho.musicplayer.mood`: offline
   audio features, Gemini classification, own Room database) and the assistant's
   `play_by_mood` tool.
+- 2026-10-29: added the LaHo parametric EQ editor (`vn.laho.musicplayer.dsp.ui`:
+  band list, preamp, live frequency-response graph from the biquad coefficients,
+  AutoEQ `ParametricEQ.txt` import through the system file picker) and named PEQ
+  presets stored as JSON in the app's files dir (`PeqPresetStore`). The DSP source
+  (Rhythm's graphic EQ, the default, or the active LaHo preset) is chosen in the
+  editor. Hooks: `RhythmPlayerEngine` (passes the preset state to the DSP), the
+  manifest, an entry in the external capabilities settings screen and an overflow
+  menu item in `EqualizerScreen` shown while LaHo DSP is on.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

@@ -203,6 +203,14 @@
             android:theme="@style/Theme.Rhythm"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- LaHo: parametric EQ editor for the float DSP -->
+        <activity
+            android:name="vn.laho.musicplayer.dsp.ui.PeqEditorActivity"
+            android:exported="false"
+            android:label="@string/laho_peq_title"
+            android:theme="@style/Theme.Rhythm"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".activities.MainActivity"
             android:exported="true"

@@ -711,6 +711,18 @@ fun EqualizerScreen(
                                 viewModel.openSystemEqualizer(activity, MainActivity.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL_REQUEST)
                             }
                         )
+                    ) + listOfNotNull(
+                        // LaHo: open the parametric EQ editor when the float DSP is on
+                        RhythmMenuItem(
+                            title = stringResource(R.string.laho_peq_title),
+                            icon = MaterialSymbolIcon("tune", filled = true),
+                            iconContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                            iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            onClick = {
+                                showMenu = false
+                                context.startActivity(vn.laho.musicplayer.dsp.ui.PeqEditorActivity.intent(context))
+                            }
+                        ).takeIf { appSettings.lahoDspEnabled.value }
                     )
                 )
             }

@@ -69,6 +69,14 @@ object AutoEqParser {
         return Result(PeqConfig(enabled = true, preampDb = preamp, bands = bands), warnings)
     }
 
+    /** Preset name for an imported file: "Sennheiser HD 600 ParametricEQ.txt" → "Sennheiser HD 600". */
+    fun presetNameFromFile(fileName: String?): String {
+        val base = fileName.orEmpty().trim().substringBeforeLast('.')
+        return base.replace(Regex("""\s*ParametricEQ\s*$""", RegexOption.IGNORE_CASE), "")
+            .trim()
+            .ifEmpty { "AutoEQ" }
+    }
+
     private fun filterTypeOf(code: String): FilterType? = when (code) {
         "PK", "PEQ", "PEAKING" -> FilterType.PEAKING
         "LSC", "LS", "LSQ" -> FilterType.LOW_SHELF
