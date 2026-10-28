@@ -62,6 +62,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import chromahub.rhythm.app.R
 import chromahub.rhythm.app.ui.theme.RhythmTheme
+import kotlinx.coroutines.Job
+import vn.laho.musicplayer.assistant.commands.BenchCommand
+import vn.laho.musicplayer.assistant.commands.ChatSink
+import vn.laho.musicplayer.assistant.commands.CommandRouter
+import vn.laho.musicplayer.assistant.commands.DriveCommand
+import vn.laho.musicplayer.assistant.commands.MetaCommand
+import vn.laho.musicplayer.assistant.commands.MoodCommand
 import vn.laho.musicplayer.mood.asIndex
 import kotlinx.coroutines.launch
 
@@ -87,7 +94,17 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         ToolRegistry.default(gateway, moodStore.asIndex(), drive),
         online = gemini,
     )
-    private var indexJob: kotlinx.coroutines.Job? = null
+
+    /** Slash commands ("/index", "/drive", ...): one class each in [vn.laho.musicplayer.assistant.commands]. */
+    private val commands = CommandRouter(
+        listOf(
+            MoodCommand(app, moodStore),
+            DriveCommand(driveAuth),
+            MetaCommand(app),
+            BenchCommand(gateway, onlineAvailable = gemini != null),
+        ),
+    )
+    private var commandJob: Job? = null
 
     val messages = mutableStateListOf(
         ChatMessage(
@@ -105,34 +122,37 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     var busy by mutableStateOf(false)
         private set
 
+    private val chat = object : ChatSink {
+        override fun post(text: String, source: AssistantReply.Source?): Int {
+            messages += ChatMessage(fromUser = false, text = text, source = source)
+            return messages.lastIndex
+        }
+
+        override fun update(index: Int, text: String) {
+            if (index in messages.indices) messages[index] = ChatMessage(false, text)
+        }
+    }
+
     fun send(text: String) {
         val trimmed = text.trim()
-        if (trimmed.equals("/stop", ignoreCase = true) && indexJob?.isActive == true) {
+        if (trimmed.equals(CommandRouter.STOP, ignoreCase = true) && commandJob?.isActive == true) {
             messages += ChatMessage(fromUser = true, text = trimmed)
-            indexJob?.cancel()
+            commandJob?.cancel()
             return
         }
         if (trimmed.isEmpty() || busy) return
         messages += ChatMessage(fromUser = true, text = trimmed)
-        if (trimmed.startsWith("/index", ignoreCase = true) || trimmed.startsWith("/mood", ignoreCase = true)) {
-            busy = true
-            moodCommand(trimmed.lowercase())
-            return
-        }
-        if (trimmed.startsWith("/drive", ignoreCase = true)) {
-            busy = true
-            driveCommand(trimmed.lowercase())
-            return
-        }
-        if (trimmed.startsWith("/meta", ignoreCase = true)) {
-            busy = true
-            metaCommand(trimmed.lowercase())
-            return
-        }
         busy = true
-        if (trimmed.startsWith("/bench", ignoreCase = true)) {
-            // "/bench" compares flash and flash-lite; "/bench lite" or "/bench flash" runs one.
-            runBenchmark(trimmed.removePrefix("/bench").trim().lowercase())
+        val routed = commands.route(trimmed)
+        if (routed != null) {
+            val (command, input) = routed
+            commandJob = viewModelScope.launch {
+                try {
+                    command.run(input, chat)
+                } finally {
+                    busy = false
+                }
+            }
             return
         }
         viewModelScope.launch {
@@ -149,163 +169,6 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /**
-     * Mood index commands: "/index" (analyse new songs; "/stop" cancels), "/mood" (status),
-     * "/mood export" (CSV for evaluation), "/mood reset" (forget everything).
-     */
-    private fun moodCommand(cmd: String) {
-        val ctx = getApplication<Application>()
-        when {
-            cmd.startsWith("/index") -> {
-                messages += ChatMessage(false, "Đang lập chỉ mục tâm trạng… (gõ /stop để dừng, chạy lại sẽ tiếp tục)")
-                val progressAt = messages.lastIndex
-                indexJob = viewModelScope.launch {
-                    val started = System.currentTimeMillis()
-                    try {
-                        val report = vn.laho.musicplayer.mood.AndroidMoodIndexing.indexer(ctx, moodStore).run { p ->
-                            val text = when (p.stage) {
-                                vn.laho.musicplayer.mood.IndexProgress.Stage.AUDIO ->
-                                    "Phân tích âm thanh ${p.done + 1}/${p.total}: ${p.current.orEmpty()}"
-                                vn.laho.musicplayer.mood.IndexProgress.Stage.LLM ->
-                                    "Gemini phân loại ${p.done}/${p.total} bài…"
-                                vn.laho.musicplayer.mood.IndexProgress.Stage.DONE -> "Hoàn tất."
-                            }
-                            messages[progressAt] = ChatMessage(false, text)
-                        }
-                        val secs = (System.currentTimeMillis() - started) / 1000
-                        val summary = "Chỉ mục tâm trạng xong sau ${secs}s: ${report.indexedWithMood}/${report.songs} bài có tâm trạng. " +
-                            "Âm thanh: ${report.analysed} bài mới phân tích, ${report.decodeFailures} bài không giải mã được. " +
-                            "Gemini: ${report.classified} bài phân loại" +
-                            (if (report.llmFailures > 0) ", ${report.llmFailures} bài lỗi (chạy lại /index để thử lại)." else ".") +
-                            llmErrorHint(report.lastLlmError) +
-                            " Thử: \"bật nhạc buồn\", \"nhạc tập gym\"."
-                        Log.i(TAG, summary)
-                        messages += ChatMessage(false, summary)
-                    } catch (e: kotlinx.coroutines.CancellationException) {
-                        messages += ChatMessage(false, "Đã dừng. Gõ /index để tiếp tục từ chỗ dừng.")
-                        throw e
-                    } catch (e: Exception) {
-                        Log.w(TAG, "Mood indexing failed", e)
-                        messages += ChatMessage(false, "Lập chỉ mục lỗi: ${e.message}")
-                    } finally {
-                        busy = false
-                    }
-                }
-            }
-            cmd.startsWith("/mood export") -> viewModelScope.launch {
-                try {
-                    val f = vn.laho.musicplayer.mood.AndroidMoodIndexing.exportCsv(ctx, moodStore)
-                    messages += ChatMessage(false, "Đã xuất ${f.absolutePath}")
-                } finally {
-                    busy = false
-                }
-            }
-            cmd.startsWith("/mood reset") -> viewModelScope.launch {
-                moodStore.clear()
-                messages += ChatMessage(false, "Đã xoá chỉ mục tâm trạng.")
-                busy = false
-            }
-            else -> viewModelScope.launch {
-                val records = moodStore.all()
-                val profiles = records.mapNotNull { it.profile() }
-                val byMood = vn.laho.musicplayer.mood.Mood.values().joinToString(", ") { m ->
-                    "${m.label} ${profiles.count { m in it.moods }}"
-                }
-                messages += ChatMessage(
-                    false,
-                    "Chỉ mục: ${records.size} bài (${records.count { it.hasFeatures && it.featureError == null }} có đặc trưng âm thanh, " +
-                        "${records.count { it.hasVerdict }} đã qua Gemini). Theo nhãn: $byMood.",
-                )
-                busy = false
-            }
-        }
-    }
-
-    /** "/drive" (status), "/drive login" (connect Google Drive), "/drive logout" (forget the token). */
-    private fun driveCommand(cmd: String) {
-        viewModelScope.launch {
-            try {
-                when {
-                    cmd.startsWith("/drive logout") -> {
-                        driveAuth.signOut()
-                        messages += ChatMessage(false, "Đã quên token Google Drive trong bộ nhớ. Quyền cấp cho app vẫn còn trong tài khoản Google.")
-                    }
-                    cmd.startsWith("/drive login") -> {
-                        if (driveAuth.authorize(interactive = true) != null) {
-                            messages += ChatMessage(false, "Đã kết nối Google Drive. Thử: \"tìm <tên bài> trên drive\".")
-                        } else {
-                            messages += ChatMessage(false, "Đang mở màn hình cấp quyền Google Drive…")
-                        }
-                    }
-                    else -> {
-                        val ok = driveAuth.isAuthorized || driveAuth.authorize(interactive = false) != null
-                        messages += ChatMessage(
-                            false,
-                            if (ok) "Google Drive: đã kết nối (chỉ đọc). Thử: \"tìm <tên bài> trên drive\"."
-                            else "Google Drive: chưa kết nối. Gõ /drive login để cấp quyền.",
-                        )
-                    }
-                }
-            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Log.w(TAG, "Drive command failed: ${e.javaClass.simpleName}")
-                messages += ChatMessage(false, e.message ?: "Lỗi Google Drive.")
-            } finally {
-                busy = false
-            }
-        }
-    }
-
-
-    /**
-     * "/meta": looks up songs with missing genre/year/album (or unknown artist) on MusicBrainz and
-     * stores suggestions in LaHo's database only (never the files). "/stop" cancels;
-     * "/meta" again resumes; "/meta reset" forgets the stored suggestions.
-     */
-    private fun metaCommand(cmd: String) {
-        val ctx = getApplication<Application>()
-        if (cmd.startsWith("/meta reset")) {
-            viewModelScope.launch {
-                try {
-                    vn.laho.musicplayer.mood.metadataStore(ctx).clear()
-                    messages += ChatMessage(false, "Đã xoá các gợi ý metadata đã lưu.")
-                } finally {
-                    busy = false
-                }
-            }
-            return
-        }
-        messages += ChatMessage(false, "Đang tra metadata trên MusicBrainz… (gõ /stop để dừng, chạy lại sẽ tiếp tục; không sửa file nhạc)")
-        val progressAt = messages.lastIndex
-        indexJob = viewModelScope.launch {
-            try {
-                val report = vn.laho.musicplayer.metadata.AndroidMetadata.batch(ctx).run { p ->
-                    if (p.current != null) {
-                        messages[progressAt] = ChatMessage(false, "Tra metadata ${p.done + 1}/${p.total}: ${p.current}")
-                    }
-                }
-                val summary = "Tra metadata xong: ${report.candidates} bài thiếu thông tin" +
-                    (if (report.skipped > 0) " (${report.skipped} bài đã tra trước đó)" else "") +
-                    ". Tìm thấy ${report.found}, không thấy ${report.notFound}" +
-                    (if (report.failed > 0) ", lỗi ${report.failed} (chạy lại /meta để thử lại)" else "") + "." +
-                    (report.lastError?.let { " Lỗi cuối: $it." } ?: "") +
-                    " Gợi ý chỉ lưu trong LaHo (dùng cho chỉ mục tâm trạng), file nhạc không bị sửa. " +
-                    "Dữ liệu: MusicBrainz. Chạy /index để chỉ mục dùng thể loại/năm mới."
-                Log.i(TAG, summary)
-                messages += ChatMessage(false, summary)
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                messages += ChatMessage(false, "Đã dừng. Gõ /meta để tiếp tục từ chỗ dừng.")
-                throw e
-            } catch (e: Exception) {
-                Log.w(TAG, "Metadata batch failed", e)
-                messages += ChatMessage(false, "Tra metadata lỗi: ${e.message}")
-            } finally {
-                busy = false
-            }
-        }
-    }
-
     /** Called with the result of the Google consent screen. */
     fun onDriveConsentResult(data: Intent?) {
         val ok = driveAuth.onConsentResult(data)
@@ -314,55 +177,6 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             if (ok) "Đã kết nối Google Drive. Hãy nói lại yêu cầu, ví dụ \"tìm <tên bài> trên drive\"."
             else "Chưa cấp quyền Google Drive.",
         )
-    }
-
-    private fun llmErrorHint(error: String?): String {
-        if (error == null) return ""
-        val lower = error.lowercase()
-        return when {
-            "app check" in lower || "appcheck" in lower || "attestation" in lower ->
-                " Lý do: App Check từ chối. Hãy thêm debug token của máy này (logcat, tag DebugAppCheckProvider) " +
-                    "vào Firebase Console → Security → App Check → ⋮ → Manage debug tokens."
-            "unable to resolve host" in lower || "timeout" in lower || "network" in lower ->
-                " Lý do: không có mạng."
-            "quota" in lower || "429" in lower -> " Lý do: hết lượt miễn phí, thử lại sau."
-            else -> " Lý do: $error"
-        }
-    }
-
-    /** "/bench": compares Gemini models on a fixed prompt set without touching playback. */
-    private fun runBenchmark(which: String) {
-        if (gemini == null) {
-            messages += ChatMessage(false, "Bản build này không có Firebase nên không chạy được benchmark.")
-            busy = false
-            return
-        }
-        val flash = vn.laho.musicplayer.assistant.online.GeminiAssistant.MODEL_FLASH
-        val lite = vn.laho.musicplayer.assistant.online.GeminiAssistant.MODEL_FLASH_LITE
-        val models = when (which) {
-            "lite" -> listOf(lite)
-            "flash" -> listOf(flash)
-            else -> listOf(flash, lite)
-        }
-        messages += ChatMessage(
-            false,
-            "Đang chạy benchmark ${models.joinToString(" và ")} (10 câu mỗi model, dry-run, " +
-                "khoảng 3-5 phút)…",
-        )
-        viewModelScope.launch {
-            try {
-                val bench = vn.laho.musicplayer.assistant.online.AssistantBenchmark(gateway)
-                val summaries = bench.run(models) { progress -> Log.i(TAG, progress) }
-                val report = vn.laho.musicplayer.assistant.online.AssistantBenchmark.format(summaries)
-                Log.i(TAG, report)
-                messages += ChatMessage(false, report, AssistantReply.Source.ONLINE)
-            } catch (e: Exception) {
-                Log.w(TAG, "Benchmark failed", e)
-                messages += ChatMessage(false, "Benchmark lỗi: ${e.message}")
-            } finally {
-                busy = false
-            }
-        }
     }
 
     override fun onCleared() {
