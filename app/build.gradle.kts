@@ -50,10 +50,11 @@ android {
         val isNightly = project.findProperty("nightly")?.toString() == "true"
         buildConfigField("boolean", "IS_NIGHTLY", isNightly.toString())
 
-        // Apple Music: fallback token from environment variable (GitHub secrets), local.properties, or fallback
+        // LaHo: no hardcoded Apple Music token. The Apple Music canvas/description lookups
+        // (unofficial API) are disabled below; a token is only used if supplied explicitly.
         val appleMusicToken = System.getenv("APPLE_MUSIC_FALLBACK_TOKEN")
             ?: localProperties.getProperty("APPLE_MUSIC_FALLBACK_TOKEN")
-            ?: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNzgxMDMyODU1LCJleHAiOjE3ODQwNTY4NTUsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ.fiMFcJWkfSlxKP9NVA0UW9CbItD1Rge0SISuepz203XcpU762OqdCpU9M-YkmtKkjRmaIWtjsfGgqZPrlMonpA"
+            ?: ""
         buildConfigField("String", "APPLE_MUSIC_FALLBACK_TOKEN", "\"$appleMusicToken\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -71,14 +72,15 @@ android {
             dimension = "distribution"
             applicationId = "vn.laho.musicplayer"
             
-            // F-Droid build: Enable all features (FOSS ethos)
-            buildConfigField("boolean", "ENABLE_YOUTUBE_MUSIC", "true")
-            buildConfigField("boolean", "ENABLE_LYRICALLY_API", "true")
-            buildConfigField("boolean", "ENABLE_DEEZER", "true")
+            // LaHo: only official/open services (LRCLIB; MusicBrainz in LaHo code). See FORK_NOTICE.md.
+            buildConfigField("boolean", "ENABLE_YOUTUBE_MUSIC", "false")
+            buildConfigField("boolean", "ENABLE_LYRICALLY_API", "false")
+            buildConfigField("boolean", "ENABLE_DEEZER", "false")
             buildConfigField("boolean", "ENABLE_LRCLIB", "true")
-            buildConfigField("boolean", "ENABLE_BETTERLYRICS", "true")
-            buildConfigField("boolean", "ENABLE_SPOTIFY_SEARCH", "true")
-            buildConfigField("boolean", "ENABLE_WIKIPEDIA", "true")
+            buildConfigField("boolean", "ENABLE_APPLE_MUSIC", "false")
+            buildConfigField("boolean", "ENABLE_BETTERLYRICS", "false")
+            buildConfigField("boolean", "ENABLE_SPOTIFY_SEARCH", "false")
+            buildConfigField("boolean", "ENABLE_WIKIPEDIA", "false")
             buildConfigField("String", "FLAVOR", "\"fdroid\"")
             
             versionNameSuffix = "-fdroid"
@@ -88,14 +90,15 @@ android {
             dimension = "distribution"
             applicationId = "vn.laho.musicplayer"
             
-            // GitHub releases: Enable all features (same as F-Droid)
-            buildConfigField("boolean", "ENABLE_YOUTUBE_MUSIC", "true")
-            buildConfigField("boolean", "ENABLE_LYRICALLY_API", "true")
-            buildConfigField("boolean", "ENABLE_DEEZER", "true")
+            // LaHo: only official/open services (LRCLIB; MusicBrainz in LaHo code). See FORK_NOTICE.md.
+            buildConfigField("boolean", "ENABLE_YOUTUBE_MUSIC", "false")
+            buildConfigField("boolean", "ENABLE_LYRICALLY_API", "false")
+            buildConfigField("boolean", "ENABLE_DEEZER", "false")
             buildConfigField("boolean", "ENABLE_LRCLIB", "true")
-            buildConfigField("boolean", "ENABLE_BETTERLYRICS", "true")
-            buildConfigField("boolean", "ENABLE_SPOTIFY_SEARCH", "true")
-            buildConfigField("boolean", "ENABLE_WIKIPEDIA", "true")
+            buildConfigField("boolean", "ENABLE_APPLE_MUSIC", "false")
+            buildConfigField("boolean", "ENABLE_BETTERLYRICS", "false")
+            buildConfigField("boolean", "ENABLE_SPOTIFY_SEARCH", "false")
+            buildConfigField("boolean", "ENABLE_WIKIPEDIA", "false")
             buildConfigField("String", "FLAVOR", "\"github\"")
             
             versionNameSuffix = "-gh"
