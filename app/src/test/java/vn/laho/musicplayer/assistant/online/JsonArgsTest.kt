@@ -88,7 +88,7 @@ class JsonArgsTest {
             tool.parameters.forEach { assertTrue(it.description.isNotBlank()) }
         }
         assertEquals(
-            setOf("playback_control", "set_volume", "search_and_play", "get_now_playing", "get_library_overview", "plan_steps"),
+            setOf("playback_control", "set_volume", "search_and_play", "get_now_playing", "get_library_overview", "explain_audio_path", "plan_steps"),
             r.tools.map { it.name }.toSet(),
         )
         // JsonObject sanity: map keys survive

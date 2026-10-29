@@ -101,6 +101,19 @@ contributors.
   the assistant screen, and `/suggest eval`, which exports CSVs for the offline replay
   evaluation (`docs/thesis/scripts/eval_suggest.py`, hit rate@k). Rhythm changes are limited
   to a read-only `PlaybackStatsRepository.allEvents()` accessor. No new database or tracking.
+- 2026-10-29: Bluetooth in the signal path. `vn.laho.musicplayer.audio.BluetoothAudioPath` maps the
+  codec Rhythm already reads (`BtCodecInfo`, reflection on `BluetoothA2dp.getCodecStatus` plus the
+  `CODEC_CONFIG_CHANGED` broadcast; no new hidden-API route) to SBC / AAC / aptX / aptX HD / aptX
+  Adaptive / LDAC / LC3 / Opus / LHDC, bitrate (read for LDAC, "typical" for SBC/AAC/aptX) and a
+  warning: Bluetooth is never bit-perfect; when the system hides the codec (privileged API,
+  Android 12+ without `BLUETOOTH_CONNECT`) it shows "Bluetooth (codec không xác định)". The sheet
+  gets a "Bluetooth link" card (`BluetoothPathCard.kt`) that asks for `BLUETOOTH_CONNECT` only
+  there, with the reason. New assistant tool `explain_audio_path` (`ExplainAudioPathTool.kt`,
+  offline phrases in `AudioPathPhrases.kt`) answers "bit-perfect không?", "tần số nào?", "codec
+  gì?" from `AudioPathStore`, the last `PlaybackQualityInfo` published by `MediaPlaybackService`
+  (USB driver state, DSP/PEQ, Bluetooth codec, rate, bit depth). Rhythm changes: one publish call
+  and a refresh hook in `MediaPlaybackService`, "A2DP" (unknown codec) no longer counts as
+  hi-res in the output status text, one card call in `PlaybackQualityBottomSheet`.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

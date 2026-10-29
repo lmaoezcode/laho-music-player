@@ -3039,6 +3039,20 @@
     <string name="laho_signal_processing">Processing</string>
     <string name="laho_signal_dsp_peq">float 32-bit, PEQ %1$d bands</string>
     <string name="laho_signal_dsp_peq_off">float 32-bit, PEQ off</string>
+    <!-- LaHo: Bluetooth link in the signal path -->
+    <string name="laho_bt_title">Bluetooth link</string>
+    <string name="laho_bt_codec">Codec</string>
+    <string name="laho_bt_codec_unknown">Bluetooth (codec unknown)</string>
+    <string name="laho_bt_bitrate">Bitrate</string>
+    <string name="laho_bt_bitrate_value">%1$d kbps</string>
+    <string name="laho_bt_bitrate_typical">~%1$d kbps (typical)</string>
+    <string name="laho_bt_format">Link format</string>
+    <string name="laho_bt_format_value">%1$s • %2$d-bit</string>
+    <string name="laho_bt_warning_lossy">Not bit-perfect (lossy compression / resampling).</string>
+    <string name="laho_bt_warning_high">%1$s uses a high bitrate, so it is closer to the source, but it is still not bit-perfect (lossy compression, resampled by Android). The real bitrate can drop when the signal is weak.</string>
+    <string name="laho_bt_warning_unknown">Android does not let apps read the codec here. Whatever it is, Bluetooth is not bit-perfect (lossy compression / resampling).</string>
+    <string name="laho_bt_permission_why">Allow \"Nearby devices\" so LaHo can read which codec your headphones use. Playback works without it.</string>
+    <string name="laho_bt_permission_button">Allow</string>
     <string name="laho_badge_bit_perfect">BIT-PERFECT</string>
     <string name="laho_badge_usb">USB DAC</string>
     <string name="laho_badge_peq">PEQ %1$d</string>

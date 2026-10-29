@@ -275,6 +275,9 @@ fun PlaybackQualityBottomSheet(
                 )
             }
 
+            // LaHo: Bluetooth codec / bitrate and the "not bit-perfect" warning
+            vn.laho.musicplayer.audio.BluetoothAudioPathCard(quality)
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

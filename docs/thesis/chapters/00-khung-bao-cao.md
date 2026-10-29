@@ -23,6 +23,19 @@ Số liệu trong ngoặc vuông `[ĐO]` là chỗ cần điền sau khi đo ở
 - Kiểm chứng: MD5 mẫu gửi xuống URB so với STREAMINFO `[ĐO]`; underrun và độ trễ chuyển bài `[ĐO]`.
 - Hạn chế: chỉ thử trên Sonata BHD; crossfade tắt ở chế độ USB.
 
+### C.x So sánh USB và Bluetooth (ghi chú đo)
+- Cách đọc: "Đường tín hiệu" hiện codec (SBC/AAC/aptX/LDAC...), bitrate và cảnh báo "không bit-perfect"
+  cho Bluetooth; Android 12 không cho ứng dụng thường đọc codec khi thiếu quyền đặc quyền, khi đó hiện
+  "Bluetooth (codec không xác định)". Trợ lý trả lời cùng dữ liệu qua `explain_audio_path`.
+- Cần ghi trên máy (cùng một bài FLAC 24-bit 96 kHz, ghi bảng mỗi dòng một cấu hình): thiết bị và
+  hãng/model tai nghe; mode (thường / DSP / USB); codec và bitrate hiển thị; tần số + độ sâu bit đầu
+  ra; "bit-perfect" có/không; có đọc được codec không (có/không quyền `BLUETOOTH_CONNECT`).
+- Cấu hình: có dây; Bluetooth AAC; Bluetooth LDAC (chọn trong Tùy chọn nhà phát triển, thử 330/660/990
+  kbps); USB DAC (Sonata BHD, driver LaHo). Mỗi cấu hình thử bài 44,1 / 96 / 192 kHz.
+- Chỉ số đối chiếu: MD5 mẫu USB so với file gốc (chỉ USB đạt); độ trễ nút phát đến có tiếng; mức
+  pin/giờ khi phát 30 phút; nghe thử mù ABX nếu có người tham gia. Kết luận dự kiến: chỉ USB driver
+  bit-perfect, Bluetooth luôn nén và lấy mẫu lại `[ĐO]`.
+
 ## Chương D. Trợ lý AI
 - `ToolRegistry`/`AssistantTool`, `OfflineCommandParser` (bỏ dấu) chạy trước, Gemini
   (Firebase AI Logic, function calling) khi cần; độ trễ offline < 100 ms, Gemini flash-lite trung

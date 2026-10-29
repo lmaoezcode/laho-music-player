@@ -71,6 +71,7 @@ class ToolRegistry(tools: List<AssistantTool>) {
                     queue?.takeIf { drive != null }?.let { PlayDownloadedTool(it, memory) },
                     sleepTimer?.let { SleepTimerTool(it) },
                     *(if (history != null) suggestTools(player, moodIndex, history) else emptyList()).toTypedArray(),
+                    ExplainAudioPathTool(vn.laho.musicplayer.audio.AudioPathStore),
                     PlanStepsTool(),
                 ),
             )

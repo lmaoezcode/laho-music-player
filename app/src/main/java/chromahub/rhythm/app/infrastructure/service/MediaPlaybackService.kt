@@ -664,6 +664,13 @@ class MediaPlaybackService : MediaLibraryService(), Player.Listener {
                     updatePlaybackQuality()
                 }
             }
+            // LaHo: re-read the codec once the user grants BLUETOOTH_CONNECT in the signal-path sheet
+            vn.laho.musicplayer.audio.AudioPathStore.refreshBluetooth = {
+                btProxy = chromahub.rhythm.app.util.BtCodecInfo.getCodec(this) { info ->
+                    if (info != null) btInfo = info
+                    updatePlaybackQuality()
+                }
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val audioManager = getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
@@ -3012,7 +3019,9 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
                     "Bit-Perfect • Direct 1:1 hardware pass-through"
                 }
                 isBt -> {
-                    val isLossyBt = btCodec in listOf("SBC", "AAC")
+                    // LaHo: unknown codecs ("A2DP") count as lossy, never as "Hi-Res"
+                    val isLossyBt = vn.laho.musicplayer.audio.BluetoothAudioPath.from(btCodec, null, null, null, true)
+                        .warning != vn.laho.musicplayer.audio.BluetoothWarning.LOSSY_HIGH_BITRATE
                     when {
                         isLossyBt -> "Compressed via Bluetooth (${btCodec ?: "A2DP"}) • Lossy output"
                         isResampled -> "Resampled to ${PlaybackQualityInfo.formatSampleRate(btSampleRate ?: 48000)} • Bluetooth limit"
@@ -3080,6 +3089,8 @@ notificationManager.createNotificationChannel(sleepTimerChannel)
             _currentPlaybackQuality.value = vn.laho.musicplayer.signal.LahoSignalPath.applyTo(
                 qualityInfo, vn.laho.musicplayer.signal.LahoSignalPath.current(appSettings)
             )
+            // LaHo: let the assistant (explain_audio_path) read the same path the sheet shows
+            _currentPlaybackQuality.value?.let { vn.laho.musicplayer.audio.AudioPathStore.publish(this, it) }
         } catch (e: Exception) {
             Log.e(TAG, "Error calculating playback quality telemetry", e)
         }

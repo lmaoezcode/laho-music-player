@@ -74,6 +74,7 @@ class OfflineCommandParser {
 
         // Short fixed commands: trailing fillers ("đi", "nhé"…) can be dropped too.
         val command = TRAILING_FILLERS.replace(foldedBody, "").trim()
+        AudioPathPhrases.parse(foldedBody)?.let { return it } // "đang nghe bit-perfect không?"
         parseControl(command)?.let { return it }
 
         // "hẹn giờ tắt nhạc sau 30 phút", "xoá hàng đợi", "thêm 5 bài của Đen vào hàng đợi",

@@ -2623,6 +2623,20 @@
     <string name="laho_signal_processing">Xử lý</string>
     <string name="laho_signal_dsp_peq">float 32-bit, PEQ %1$d băng</string>
     <string name="laho_signal_dsp_peq_off">float 32-bit, PEQ tắt</string>
+    <!-- LaHo: đường truyền Bluetooth trong đường tín hiệu -->
+    <string name="laho_bt_title">Đường truyền Bluetooth</string>
+    <string name="laho_bt_codec">Codec</string>
+    <string name="laho_bt_codec_unknown">Bluetooth (codec không xác định)</string>
+    <string name="laho_bt_bitrate">Bitrate</string>
+    <string name="laho_bt_bitrate_value">%1$d kbps</string>
+    <string name="laho_bt_bitrate_typical">~%1$d kbps (điển hình)</string>
+    <string name="laho_bt_format">Định dạng liên kết</string>
+    <string name="laho_bt_format_value">%1$s • %2$d-bit</string>
+    <string name="laho_bt_warning_lossy">Không bit-perfect (nén có mất dữ liệu / lấy mẫu lại).</string>
+    <string name="laho_bt_warning_high">%1$s dùng bitrate cao nên gần bản gốc hơn, nhưng vẫn không bit-perfect (nén có mất dữ liệu, Android lấy mẫu lại). Bitrate thực tế có thể tự hạ khi sóng yếu.</string>
+    <string name="laho_bt_warning_unknown">Android không cho ứng dụng đọc codec ở đây. Dù codec nào, Bluetooth cũng không bit-perfect (nén có mất dữ liệu / lấy mẫu lại).</string>
+    <string name="laho_bt_permission_why">Cho phép \"Thiết bị ở gần\" để LaHo đọc được tai nghe đang dùng codec nào. Không cấp vẫn nghe bình thường.</string>
+    <string name="laho_bt_permission_button">Cho phép</string>
     <string name="laho_badge_bit_perfect">BIT-PERFECT</string>
     <string name="laho_badge_usb">USB DAC</string>
     <string name="laho_badge_peq">PEQ %1$d</string>
