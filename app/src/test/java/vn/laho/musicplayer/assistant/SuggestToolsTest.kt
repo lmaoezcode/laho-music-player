@@ -108,7 +108,7 @@ class SuggestToolsTest {
     @Test
     fun registryExposesAndRunsBothTools() = runBlocking {
         val p = FakePlayer(library)
-        val registry = ToolRegistry.default(p, index, null, history())
+        val registry = ToolRegistry.default(p, index, null, history = history())
         assertNotNull(registry["suggest_for_now"])
         assertNotNull(registry["daily_mix"])
         assertTrue(registry.execute(ToolCall("suggest_for_now", mapOf("count" to 2))).success)
