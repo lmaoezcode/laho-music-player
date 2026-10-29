@@ -94,6 +94,13 @@ contributors.
   steps are expected. Progress is shown per step in the chat; `drive_download`
   and `queue_clear` pause the chain and ask "có/không" (the model can never
   confirm for the user); Drive file names stay data, never instructions.
+- 2026-10-29: added context-aware suggestions (`vn.laho.musicplayer.suggest`): a pure
+  `SuggestionEngine` (mood fit for the time of day + affinity per song/artist/part of the
+  day from Rhythm's own playback log, minus recency and skip penalties), the assistant tools
+  `suggest_for_now` / `daily_mix` (`assistant/SuggestTools.kt`), a "Gợi ý cho bạn" card on
+  the assistant screen, and `/suggest eval`, which exports CSVs for the offline replay
+  evaluation (`docs/thesis/scripts/eval_suggest.py`, hit rate@k). Rhythm changes are limited
+  to a read-only `PlaybackStatsRepository.allEvents()` accessor. No new database or tracking.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

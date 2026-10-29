@@ -10,6 +10,8 @@ data class LibrarySong(
     val artist: String,
     val album: String,
     val genre: String? = null,
+    /** Song length in ms; 0 when unknown. */
+    val durationMs: Long = 0,
 )
 
 data class NowPlaying(val title: String, val artist: String, val isPlaying: Boolean)

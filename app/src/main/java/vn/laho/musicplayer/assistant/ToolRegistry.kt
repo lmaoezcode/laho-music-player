@@ -52,6 +52,7 @@ class ToolRegistry(tools: List<AssistantTool>) {
             sleepTimer: SleepTimerGateway? = null,
             memory: AgentMemory = AgentMemory(),
             random: kotlin.random.Random = kotlin.random.Random.Default,
+            history: vn.laho.musicplayer.suggest.ListeningHistory? = null,
         ): ToolRegistry {
             val picker = SongPicker(player, moodIndex, random)
             return ToolRegistry(
@@ -69,6 +70,7 @@ class ToolRegistry(tools: List<AssistantTool>) {
                     queue?.let { QueueClearTool(it) },
                     queue?.takeIf { drive != null }?.let { PlayDownloadedTool(it, memory) },
                     sleepTimer?.let { SleepTimerTool(it) },
+                    *(if (history != null) suggestTools(player, moodIndex, history) else emptyList()).toTypedArray(),
                     PlanStepsTool(),
                 ),
             )

@@ -70,6 +70,7 @@ import vn.laho.musicplayer.assistant.commands.CommandRouter
 import vn.laho.musicplayer.assistant.commands.DriveCommand
 import vn.laho.musicplayer.assistant.commands.MetaCommand
 import vn.laho.musicplayer.assistant.commands.MoodCommand
+import vn.laho.musicplayer.assistant.commands.SuggestCommand
 import vn.laho.musicplayer.mood.asIndex
 import vn.laho.musicplayer.tv.TvDevice
 import vn.laho.musicplayer.tv.TvKeys
@@ -95,10 +96,11 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         ),
         vn.laho.musicplayer.drive.MediaStoreTrackSaver(app),
     )
+    private val history = vn.laho.musicplayer.suggest.RhythmListeningHistory(app)
     private val engine = AssistantEngine(
         ToolRegistry.default(
             gateway, moodStore.asIndex(), drive,
-            queue = gateway, playlists = gateway, sleepTimer = gateway,
+            queue = gateway, playlists = gateway, sleepTimer = gateway, history = history,
         ),
         online = gemini,
     )
@@ -109,6 +111,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             MoodCommand(app, moodStore),
             DriveCommand(driveAuth),
             MetaCommand(app),
+            SuggestCommand(app, gateway, moodStore.asIndex(), history),
             BenchCommand(gateway, onlineAvailable = gemini != null),
         ),
     )
@@ -129,6 +132,20 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     )
     var busy by mutableStateOf(false)
         private set
+
+    /** "Gợi ý cho bạn" card; refreshed on start and after each request. */
+    var suggestPreview by mutableStateOf<SuggestPreview?>(null)
+        private set
+
+    fun refreshSuggestions() {
+        viewModelScope.launch {
+            suggestPreview = runCatching { loadSuggestPreview(gateway, moodStore.asIndex(), history) }.getOrNull()
+        }
+    }
+
+    init {
+        refreshSuggestions()
+    }
 
     private val chat = object : ChatSink {
         override fun post(text: String, source: AssistantReply.Source?): Int {
@@ -184,6 +201,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             )
             messages += ChatMessage(fromUser = false, text = reply.text, source = reply.source)
             busy = false
+            refreshSuggestions()
         }
     }
 
@@ -314,6 +332,14 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, v
             ) {
                 items(viewModel.messages) { MessageBubble(it) }
             }
+
+            SuggestCard(
+                preview = viewModel.suggestPreview,
+                enabled = !viewModel.busy,
+                onPlayNow = { viewModel.send("nhạc cho lúc này") },
+                onDailyMix = { viewModel.send("daily mix") },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
 
             Row(
                 modifier = Modifier
