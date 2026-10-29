@@ -66,6 +66,7 @@ import chromahub.rhythm.app.ui.theme.RhythmTheme
 import kotlinx.coroutines.Job
 import vn.laho.musicplayer.assistant.commands.BenchCommand
 import vn.laho.musicplayer.assistant.commands.ChatSink
+import vn.laho.musicplayer.assistant.commands.BackupCommand
 import vn.laho.musicplayer.assistant.commands.CommandRouter
 import vn.laho.musicplayer.assistant.commands.DriveCommand
 import vn.laho.musicplayer.assistant.commands.MetaCommand
@@ -96,6 +97,9 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         ),
         vn.laho.musicplayer.drive.MediaStoreTrackSaver(app),
     )
+    /** Separate consent (`drive.appdata`) for /backup; never shown unless the user types /backup login. */
+    val backupAuth = vn.laho.musicplayer.backup.AndroidBackup.auth(app)
+    private val backupGate = vn.laho.musicplayer.backup.DriveBackupAuth(backupAuth)
     private val history = vn.laho.musicplayer.suggest.RhythmListeningHistory(app)
     private val engine = AssistantEngine(
         ToolRegistry.default(
@@ -113,6 +117,10 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             MetaCommand(app),
             SuggestCommand(app, gateway, moodStore.asIndex(), history),
             BenchCommand(gateway, onlineAvailable = gemini != null),
+            BackupCommand(
+                vn.laho.musicplayer.backup.AndroidBackup.service(app, backupGate, chromahub.rhythm.app.BuildConfig.VERSION_NAME),
+                backupGate,
+            ),
         ),
     )
     private var commandJob: Job? = null
@@ -215,6 +223,14 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         )
     }
 
+    fun onBackupConsentResult(data: Intent?) {
+        val ok = backupAuth.onConsentResult(data)
+        messages += ChatMessage(
+            false,
+            if (ok) "Đã cấp quyền sao lưu. Gõ /backup now để sao lưu." else "Chưa cấp quyền sao lưu Google Drive.",
+        )
+    }
+
     override fun onCleared() {
         gateway.release()
     }
@@ -281,6 +297,14 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, v
 
     val driveConsent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
         viewModel.onDriveConsentResult(result.data)
+    }
+    val backupConsent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+        viewModel.onBackupConsentResult(result.data)
+    }
+    val pendingBackupConsent by viewModel.backupAuth.pending.collectAsState()
+    LaunchedEffect(pendingBackupConsent) {
+        val intent = viewModel.backupAuth.consumePending() ?: return@LaunchedEffect
+        backupConsent.launch(IntentSenderRequest.Builder(intent.intentSender).build())
     }
     val pendingConsent by viewModel.driveAuth.pending.collectAsState()
     LaunchedEffect(pendingConsent) {

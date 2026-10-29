@@ -40,6 +40,19 @@ contributors.
   (`play-services-auth`, `drive.readonly`, token kept in memory only), saving to
   `Music/LaHo` via MediaStore, and the assistant tools `drive_search` /
   `drive_download` (confirmation required) plus the `/drive` chat command.
+- 2026-10-29: added manual backup/restore to Google Drive's hidden app data folder
+  (`vn.laho.musicplayer.backup`, `drive/DriveAppDataClient`, `/backup` chat command).
+  Scope `https://www.googleapis.com/auth/drive.appdata`, requested only by
+  `/backup login` after an explanation (separate from the read-only `drive.readonly`
+  login; token in memory only). One versioned JSON file (`laho-backup-<UTC time>.json`,
+  schema 1) with PEQ presets + active choice, the mood index and metadata suggestions;
+  never OAuth/App Check tokens, file paths/URIs or audio. The last 3 backups are kept,
+  older ones in the same folder are deleted. Songs are matched across devices by
+  normalised title + artist + duration (+-3 s; without a stored duration only a unique
+  title+artist match counts). Restore merges, asks for "/backup restore co", never
+  deletes local data, refuses newer schema versions. Listening history is not saved
+  (it is Rhythm's own playback log, not a LaHo table); no AI-online switch on this base.
+  The Google Cloud OAuth consent screen must list the `drive.appdata` scope.
 - 2026-10-18: added metadata lookup (`vn.laho.musicplayer.metadata`): MusicBrainz
   web service client (rate limited to 1 request/s, descriptive User-Agent) with
   match scoring, Cover Art Archive covers, a "Find metadata" action in the tag

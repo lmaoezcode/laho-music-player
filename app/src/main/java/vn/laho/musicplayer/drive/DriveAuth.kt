@@ -26,7 +26,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  * exists. When consent is needed, [authorize] exposes the resolution [PendingIntent] in
  * [pending] and the assistant screen launches it.
  */
-class DriveAuth(context: Context) : DriveTokenSource {
+class DriveAuth(
+    context: Context,
+    private val scopes: List<String> = listOf(SCOPE_DRIVE_READONLY),
+) : DriveTokenSource {
 
     private val appContext = context.applicationContext
     private val client by lazy { Identity.getAuthorizationClient(appContext) }
@@ -86,10 +89,13 @@ class DriveAuth(context: Context) : DriveTokenSource {
     }
 
     private fun request(): AuthorizationRequest =
-        AuthorizationRequest.builder().setRequestedScopes(listOf(Scope(SCOPE_DRIVE_READONLY))).build()
+        AuthorizationRequest.builder().setRequestedScopes(scopes.map { Scope(it) }).build()
 
     companion object {
         const val SCOPE_DRIVE_READONLY = "https://www.googleapis.com/auth/drive.readonly"
+
+        /** Hidden per-app folder (`appDataFolder`); used only by the LaHo backup, with its own consent. */
+        const val SCOPE_DRIVE_APPDATA = "https://www.googleapis.com/auth/drive.appdata"
     }
 }
 
