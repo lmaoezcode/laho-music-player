@@ -540,7 +540,11 @@ class RhythmPlayerEngine(
                 if (useLahoDsp) {
                     // The LaHo sink always hands float PCM to baseSink, so Media3 skips the
                     // legacy 16-bit processor chain; the LaHo PEQ replaces the system EQ.
-                    return vn.laho.musicplayer.dsp.LahoDspController.createSink(baseSink, appSettings)
+                    return vn.laho.musicplayer.dsp.LahoDspController.createSink(
+                        baseSink,
+                        appSettings,
+                        vn.laho.musicplayer.dsp.PeqPresetStore.get(context).state,
+                    )
                 }
 
                 return if (replayGainProcessor != null) {

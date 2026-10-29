@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -21,9 +22,10 @@ import kotlinx.coroutines.launch
 /**
  * Owns LaHo's DSP state for the whole app.
  *
- * Spike scope: the PEQ is driven by the existing 10-band graphic EQ settings
- * (AppSettings.equalizerEnabled / equalizerBandLevels), so the current EQ screen and AutoEQ
- * presets control the new float pipeline. While LaHo DSP is active the platform
+ * The PEQ comes either from Rhythm's 10-band graphic EQ settings
+ * (AppSettings.equalizerEnabled / equalizerBandLevels; the default, so the existing EQ screen
+ * keeps working) or from the active preset of the LaHo PEQ editor, depending on
+ * [PeqPresetState.source] (see [PeqSourceSelector]). While LaHo DSP is active the platform
  * `audiofx.Equalizer` is kept flat so the EQ is not applied twice.
  */
 object LahoDspController {
@@ -48,8 +50,12 @@ object LahoDspController {
 
     /** Wraps [delegate] (which must have float output enabled) with the LaHo DSP. */
     @OptIn(UnstableApi::class)
-    fun createSink(delegate: AudioSink, appSettings: AppSettings): AudioSink {
-        bind(appSettings)
+    fun createSink(
+        delegate: AudioSink,
+        appSettings: AppSettings,
+        presetState: StateFlow<PeqPresetState>? = null,
+    ): AudioSink {
+        bind(appSettings, presetState)
         isActive = true
         val processor = PeqProcessor()
         processors += processor
@@ -70,12 +76,15 @@ object LahoDspController {
     }
 
     @Synchronized
-    private fun bind(appSettings: AppSettings) {
+    private fun bind(appSettings: AppSettings, presetState: StateFlow<PeqPresetState>?) {
         if (bindJob != null) return
         bindJob = scope.launch {
-            combine(appSettings.equalizerEnabled, appSettings.equalizerBandLevels) { enabled, levels ->
+            val graphic = combine(appSettings.equalizerEnabled, appSettings.equalizerBandLevels) { enabled, levels ->
                 PeqConfig.fromGraphicEq(enabled, parseLevels(levels))
             }
+            val selected = if (presetState == null) graphic
+            else combine(graphic, presetState) { g, s -> PeqSourceSelector.select(s, g) }
+            selected
                 .distinctUntilChanged()
                 .collect { config ->
                     Log.d(TAG, "PEQ update: enabled=${config.enabled} preamp=${"%.2f".format(config.preampDb)} dB")

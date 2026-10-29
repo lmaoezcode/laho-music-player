@@ -229,6 +229,19 @@ fun ExternalCapabilitiesSettingsScreen(
                             ),
                             hapticFeedback = haptics
                         ),
+                        // LaHo: parametric EQ editor (presets, AutoEQ import)
+                        toMaterial3SettingsItem(
+                            context = context,
+                            item = SettingItem(
+                                icon = MaterialSymbolIcon("tune", filled = true),
+                                title = stringResource(R.string.laho_peq_title),
+                                description = stringResource(R.string.laho_peq_entry_desc),
+                                onClick = {
+                                    context.startActivity(vn.laho.musicplayer.dsp.ui.PeqEditorActivity.intent(context))
+                                }
+                            ),
+                            hapticFeedback = haptics
+                        ),
                         // LaHo: userspace bit-perfect USB DAC driver
                         toMaterial3SettingsItem(
                             context = context,
