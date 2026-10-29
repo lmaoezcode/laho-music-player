@@ -268,6 +268,8 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, v
     LaunchedEffect(pendingConsent) {
         val intent = viewModel.driveAuth.consumePending() ?: return@LaunchedEffect
         driveConsent.launch(IntentSenderRequest.Builder(intent.intentSender).build())
+    }
+
     fun startSpeech() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
