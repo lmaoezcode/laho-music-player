@@ -354,6 +354,7 @@ fun RhythmTheme(
         motionScheme = MotionScheme.expressive(),
         typography = typography,
         shapes = Shapes,
-        content = content
+        // LaHo: visible D-pad focus on Android TV (no-op on phones)
+        content = { vn.laho.musicplayer.tv.TvFocusStyle(content) }
     )
 }

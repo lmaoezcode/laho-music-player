@@ -779,6 +779,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    // LaHo: Android TV remote (media keys + search/voice key -> assistant). No-op on phones.
+    private val tvControls by lazy {
+        vn.laho.musicplayer.tv.TvRemote.Controls(
+            isPlaying = { musicViewModel.isPlaying.value },
+            togglePlayPause = { musicViewModel.togglePlayPause() },
+            next = { musicViewModel.skipToNext() },
+            previous = { musicViewModel.skipToPrevious() },
+        )
+    }
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean =
+        vn.laho.musicplayer.tv.TvRemote.onKeyDown(this, keyCode, event, tvControls) ||
+            super.onKeyDown(keyCode, event)
+
+    override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean =
+        vn.laho.musicplayer.tv.TvRemote.onKeyUp(this, keyCode) || super.onKeyUp(keyCode, event)
+
+    override fun onSearchRequested(): Boolean =
+        vn.laho.musicplayer.tv.TvRemote.onSearchRequested(this) || super.onSearchRequested()
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // LaHo: DAC plugged in while the app is running

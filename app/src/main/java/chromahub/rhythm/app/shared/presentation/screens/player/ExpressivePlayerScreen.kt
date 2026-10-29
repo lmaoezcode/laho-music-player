@@ -5,6 +5,7 @@
 
 package chromahub.rhythm.app.shared.presentation.screens.player
 
+import vn.laho.musicplayer.tv.tvInitialFocus
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -1485,7 +1486,8 @@ fun ExpressivePlayerScreen(
                                                 else -> MaterialTheme.colorScheme.onPrimary
                                             },
                                             size = controlButtonSize,
-                                            modifier = Modifier.weight(1f)
+                                            // LaHo: TV opens the player with focus on play/pause
+                                            modifier = Modifier.weight(1f).tvInitialFocus()
                                         )
                                         RhythmControlButton(
                                             onClick = { HapticUtils.performHapticFeedback(context, haptic, HapticType.MEDIUM); onSkipNext() },

@@ -48,6 +48,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
@@ -70,6 +71,10 @@ import vn.laho.musicplayer.assistant.commands.DriveCommand
 import vn.laho.musicplayer.assistant.commands.MetaCommand
 import vn.laho.musicplayer.assistant.commands.MoodCommand
 import vn.laho.musicplayer.mood.asIndex
+import vn.laho.musicplayer.tv.TvDevice
+import vn.laho.musicplayer.tv.TvKeys
+import vn.laho.musicplayer.tv.tvFocusableItem
+import vn.laho.musicplayer.tv.tvInitialFocus
 import kotlinx.coroutines.launch
 
 /** One line in the assistant chat. */
@@ -193,20 +198,46 @@ class AssistantActivity : ComponentActivity() {
 
     private val viewModel: AssistantViewModel by viewModels()
 
+    /** Bumped whenever speech input should start (TV remote voice/search key, launch extra). */
+    private val voiceRequests = mutableIntStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_START_VOICE, false)) voiceRequests.intValue++
         setContent {
             RhythmTheme {
-                AssistantScreen(viewModel, onBack = ::finish)
+                AssistantScreen(viewModel, onBack = ::finish, voiceRequest = voiceRequests.intValue)
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_START_VOICE, false)) voiceRequests.intValue++
+    }
+
+    // LaHo TV: the remote's search/voice key starts speech input again while the chat is open.
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        if (TvDevice.isTv(this) && TvKeys.isAssistantKey(keyCode)) {
+            if (event.repeatCount == 0) voiceRequests.intValue++
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean =
+        (TvDevice.isTv(this) && TvKeys.isAssistantKey(keyCode)) || super.onKeyUp(keyCode, event)
+
+    companion object {
+        /** Boolean extra: start speech recognition as soon as the screen opens. */
+        const val EXTRA_START_VOICE = "vn.laho.musicplayer.extra.START_VOICE"
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit) {
+private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, voiceRequest: Int = 0) {
     var input by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
@@ -224,6 +255,20 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit) {
     LaunchedEffect(pendingConsent) {
         val intent = viewModel.driveAuth.consumePending() ?: return@LaunchedEffect
         driveConsent.launch(IntentSenderRequest.Builder(intent.intentSender).build())
+    fun startSpeech() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN")
+            .putExtra(RecognizerIntent.EXTRA_PROMPT, "Nói lệnh cho LaHo")
+        try {
+            speechLauncher.launch(intent)
+        } catch (e: ActivityNotFoundException) {
+            viewModel.messages += ChatMessage(false, "Máy không có trình nhận dạng giọng nói.")
+        }
+    }
+
+    LaunchedEffect(voiceRequest) {
+        if (voiceRequest > 0 && !viewModel.busy) startSpeech()
     }
 
     LaunchedEffect(viewModel.messages.size) {
@@ -283,18 +328,10 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit) {
                 )
                 Spacer(Modifier.width(8.dp))
                 OutlinedButton(
-                    onClick = {
-                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN")
-                            .putExtra(RecognizerIntent.EXTRA_PROMPT, "Nói lệnh cho LaHo")
-                        try {
-                            speechLauncher.launch(intent)
-                        } catch (e: ActivityNotFoundException) {
-                            viewModel.messages += ChatMessage(false, "Máy không có trình nhận dạng giọng nói.")
-                        }
-                    },
+                    onClick = ::startSpeech,
                     enabled = !viewModel.busy,
+                    // LaHo TV: D-pad starts on the mic button
+                    modifier = Modifier.tvInitialFocus(),
                 ) { Text("Nói") }
                 Spacer(Modifier.width(8.dp))
                 Button(
@@ -312,6 +349,7 @@ private fun MessageBubble(message: ChatMessage) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = if (message.fromUser) Alignment.CenterEnd else Alignment.CenterStart) {
         Column(
             modifier = Modifier
+                .tvFocusableItem() // LaHo TV: lets the D-pad scroll back through the chat
                 .widthIn(max = 320.dp)
                 .background(
                     color = if (message.fromUser) colors.primaryContainer else colors.surfaceVariant,
