@@ -57,6 +57,13 @@ contributors.
   link to the upstream repository; network User-Agent / client names now say LaHo.
   Drawable resource names (`rhythm_logo`, ...) are unchanged. The update checker
   now reads releases of lmaoezcode/laho-music-player and is off by default.
+- 2026-10-29: added context-aware suggestions (`vn.laho.musicplayer.suggest`): a pure
+  `SuggestionEngine` (mood fit for the time of day + affinity per song/artist/part of the
+  day from Rhythm's own playback log, minus recency and skip penalties), the assistant tools
+  `suggest_for_now` / `daily_mix` (`assistant/SuggestTools.kt`), a "Gợi ý cho bạn" card on
+  the assistant screen, and `/suggest eval`, which exports CSVs for the offline replay
+  evaluation (`docs/thesis/scripts/eval_suggest.py`, hit rate@k). Rhythm changes are limited
+  to a read-only `PlaybackStatsRepository.allEvents()` accessor. No new database or tracking.
 
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with

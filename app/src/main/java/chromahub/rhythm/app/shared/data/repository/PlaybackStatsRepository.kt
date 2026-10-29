@@ -722,6 +722,9 @@ class PlaybackStatsRepository private constructor(private val context: Context) 
     private fun readEvents(): List<PlaybackEvent> = synchronized(fileLock) { 
         readEventsLocked() 
     }
+
+    /** LaHo: read-only copy of the raw playback log (last 90 days), for context-aware suggestions. */
+    fun allEvents(): List<PlaybackEvent> = readEvents()
     
     private fun readEventsLocked(): MutableList<PlaybackEvent> {
         if (!historyFile.exists()) {

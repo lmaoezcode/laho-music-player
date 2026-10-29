@@ -44,6 +44,7 @@ class ToolRegistry(tools: List<AssistantTool>) {
             player: PlayerGateway,
             moodIndex: vn.laho.musicplayer.mood.MoodIndex? = null,
             drive: vn.laho.musicplayer.drive.DriveGateway? = null,
+            history: vn.laho.musicplayer.suggest.ListeningHistory? = null,
         ) = ToolRegistry(
             listOfNotNull(
                 PlaybackControlTool(player),
@@ -53,6 +54,7 @@ class ToolRegistry(tools: List<AssistantTool>) {
                 LibraryOverviewTool(player, moodIndex),
                 moodIndex?.let { PlayByMoodTool(player, it) },
                 *driveTools(drive),
+                *(if (history != null) suggestTools(player, moodIndex, history) else emptyList()).toTypedArray(),
             ),
         )
     }

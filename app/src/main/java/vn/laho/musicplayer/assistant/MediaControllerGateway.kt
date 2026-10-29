@@ -91,7 +91,7 @@ class MediaControllerGateway(context: Context) : PlayerGateway {
             RhythmDatabase.getInstance(appContext).songDao().getAllSongs().map { it.toSong() }
         }
         songsById = songs.associateBy { it.id }
-        return songs.map { LibrarySong(it.id, it.title, it.artist, it.album, it.genre) }
+        return songs.map { LibrarySong(it.id, it.title, it.artist, it.album, it.genre, it.duration) }
     }
 
     override suspend fun playSongs(songs: List<LibrarySong>, startIndex: Int) {

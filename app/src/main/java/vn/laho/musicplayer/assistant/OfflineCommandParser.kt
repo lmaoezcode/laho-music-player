@@ -30,6 +30,9 @@ class OfflineCommandParser {
         // "tìm X trên drive", "tải bài X từ drive", "tải số 2", "đồng ý tải".
         parseDrive(body, command)?.let { return it }
 
+        // "nhạc cho lúc này", "gợi ý nhạc", "nhạc buổi sáng", "daily mix" → suggestion tools.
+        SuggestPhrases.parse(foldedBody)?.let { return it }
+
         // "bật nhạc buồn", "phát vài bài nhẹ nhàng để học", "nhạc tập gym" → mood index.
         parseMoodPlay(foldedBody)?.let { return it }
 
