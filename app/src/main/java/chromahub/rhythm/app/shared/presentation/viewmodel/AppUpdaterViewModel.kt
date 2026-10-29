@@ -118,8 +118,8 @@ class AppUpdaterViewModel(
     private val updateDownloadCompletionAutoDismissMs = 7000L
 
     // GitHub repository information
-    private val githubOwner = "cromaguy"
-    private val githubRepo = "Rhythm"
+    private val githubOwner = "lmaoezcode"
+    private val githubRepo = "laho-music-player"
 
     // Update check interval (6 hours)
     private val updateCheckInterval = TimeUnit.HOURS.toMillis(6)
@@ -401,7 +401,7 @@ class AppUpdaterViewModel(
                                 val artifactsResponse = gitHubApiService.getRunArtifacts(githubOwner, githubRepo, latestRun.id)
                                 if (artifactsResponse.isSuccessful) {
                                     apkSize = artifactsResponse.body()?.artifacts?.firstOrNull {
-                                        it.name == "Rhythm-Nightly-Artifacts"
+                                        it.name == "LaHo-Nightly-Artifacts"
                                     }?.size_in_bytes ?: 0
                                 }
                             } catch (e: Exception) {
@@ -655,7 +655,7 @@ class AppUpdaterViewModel(
                 .replace(Regex("-nightly-r\\d+-[0-9a-f]+", RegexOption.IGNORE_CASE), "")
         val versionName = "$cleanedBaseName-nightly-r${run.run_number}-$shortSha"
 
-        val downloadUrl = "https://nightly.link/cromaguy/Rhythm/workflows/nightly.yml/main/Rhythm-Nightly-Artifacts.zip"
+        val downloadUrl = "https://nightly.link/lmaoezcode/laho-music-player/workflows/nightly.yml/main/LaHo-Nightly-Artifacts.zip"
 
         val commitMessage = run.head_commit?.message ?: "New features and performance updates"
         val changelogItems = ChangelogFilter.filterLines(commitMessage.lines())
@@ -667,7 +667,7 @@ class AppUpdaterViewModel(
             whatsNew = changelogItems,
             knownIssues = emptyList(),
             downloadUrl = downloadUrl,
-            apkAssetName = "Rhythm-Nightly-Artifacts.zip",
+            apkAssetName = "LaHo-Nightly-Artifacts.zip",
             apkSize = apkSize,
             releaseNotes = commitMessage,
             isPreRelease = true,
@@ -782,7 +782,7 @@ class AppUpdaterViewModel(
                             "Bug fixes and optimizations",
                         ),
                     knownIssues = emptyList(),
-                    downloadUrl = "https://github.com/cromaguy/Rhythm/releases",
+                    downloadUrl = "https://github.com/lmaoezcode/laho-music-player/releases",
                     apkAssetName = "rhythm-release.apk",
                     apkSize = 0,
                     releaseNotes = "Test update",
@@ -1019,7 +1019,7 @@ class AppUpdaterViewModel(
                     Request
                         .Builder()
                         .url(downloadUrl)
-                        .header("User-Agent", "Rhythm-App/${BuildConfig.VERSION_NAME} (Android)")
+                        .header("User-Agent", "LaHo/${BuildConfig.VERSION_NAME} (Android)")
 
                 // Add range header if resuming
                 if (existingLength > 0 && activeDownload != null) {

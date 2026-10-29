@@ -10320,7 +10320,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 // It uses M/S stereo widening, so it's always available for stereo audio
                 _isSpatializationAvailable.value = true
                 _spatializationStatus.value = when {
-                    appSettings.virtualizerEnabled.value -> "Active (Rhythm Spatial Audio)"
+                    appSettings.virtualizerEnabled.value -> "Active (LaHo Spatial Audio)"
                     else -> "Available"
                 }
             } catch (e: Exception) {

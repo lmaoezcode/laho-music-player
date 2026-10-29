@@ -239,7 +239,7 @@ fun PlayerCustomizationSettingsScreen(onBackClick: () -> Unit) {
                                     Spacer(modifier = Modifier.height(12.dp))
                                     ExpressiveButtonGroup(
                                         items = listOf(
-                                            "Rhythm",
+                                            "LaHo",
                                             "Expressive"
                                         ),
                                         selectedIndex = if (playerThemeId == "MATERIAL") 0 else 1,

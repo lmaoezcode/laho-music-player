@@ -69,7 +69,7 @@ object GlanceWidgetUpdater {
                 putString(RhythmMusicWidget.KEY_ARTWORK_URI, song.artworkUri?.toString())
             } else {
                 putString(RhythmMusicWidget.KEY_SONG_ID, "")
-                putString(RhythmMusicWidget.KEY_SONG_TITLE, "Rhythm")
+                putString(RhythmMusicWidget.KEY_SONG_TITLE, "LaHo")
                 putString(RhythmMusicWidget.KEY_ARTIST_NAME, "")
                 putString(RhythmMusicWidget.KEY_ALBUM_NAME, "")
                 remove(RhythmMusicWidget.KEY_ARTWORK_URI)
@@ -120,7 +120,7 @@ object GlanceWidgetUpdater {
                         }
                     } else {
                         mutablePrefs.remove(stringPreferencesKey(RhythmMusicWidget.KEY_SONG_ID))
-                        mutablePrefs[stringPreferencesKey(RhythmMusicWidget.KEY_SONG_TITLE)] = "Rhythm"
+                        mutablePrefs[stringPreferencesKey(RhythmMusicWidget.KEY_SONG_TITLE)] = "LaHo"
                         mutablePrefs[stringPreferencesKey(RhythmMusicWidget.KEY_ARTIST_NAME)] = ""
                         mutablePrefs[stringPreferencesKey(RhythmMusicWidget.KEY_ALBUM_NAME)] = ""
                         mutablePrefs.remove(stringPreferencesKey(RhythmMusicWidget.KEY_ARTWORK_URI))
@@ -156,7 +156,7 @@ object GlanceWidgetUpdater {
                                 prefs[stringPreferencesKey(RhythmLyricsWidget.KEY_ARTWORK_URI)] = it.toString()
                             } ?: prefs.remove(stringPreferencesKey(RhythmLyricsWidget.KEY_ARTWORK_URI))
                         } else {
-                            prefs[stringPreferencesKey(RhythmLyricsWidget.KEY_SONG_TITLE)] = "Rhythm"
+                            prefs[stringPreferencesKey(RhythmLyricsWidget.KEY_SONG_TITLE)] = "LaHo"
                             prefs[stringPreferencesKey(RhythmLyricsWidget.KEY_ARTIST_NAME)] = ""
                             prefs[stringPreferencesKey(RhythmLyricsWidget.KEY_LYRIC_LINES)] = ""
                             prefs[intPreferencesKey(RhythmLyricsWidget.KEY_ACTIVE_INDEX)] = -1

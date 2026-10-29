@@ -13,6 +13,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
@@ -70,8 +72,19 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     private val gateway = MediaControllerGateway(app)
     private val gemini = vn.laho.musicplayer.assistant.online.GeminiAssistant.createOrNull(app)
     private val moodStore = vn.laho.musicplayer.mood.RoomMoodStore.get(app)
+    val driveAuth = vn.laho.musicplayer.drive.DriveAuth(app)
+    private val drive = vn.laho.musicplayer.drive.DriveRepository(
+        vn.laho.musicplayer.drive.DriveClient(
+            okhttp3.OkHttpClient.Builder()
+                .connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                .build(),
+            driveAuth,
+        ),
+        vn.laho.musicplayer.drive.MediaStoreTrackSaver(app),
+    )
     private val engine = AssistantEngine(
-        ToolRegistry.default(gateway, moodStore.asIndex()),
+        ToolRegistry.default(gateway, moodStore.asIndex(), drive),
         online = gemini,
     )
     private var indexJob: kotlinx.coroutines.Job? = null
@@ -104,6 +117,16 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         if (trimmed.startsWith("/index", ignoreCase = true) || trimmed.startsWith("/mood", ignoreCase = true)) {
             busy = true
             moodCommand(trimmed.lowercase())
+            return
+        }
+        if (trimmed.startsWith("/drive", ignoreCase = true)) {
+            busy = true
+            driveCommand(trimmed.lowercase())
+            return
+        }
+        if (trimmed.startsWith("/meta", ignoreCase = true)) {
+            busy = true
+            metaCommand(trimmed.lowercase())
             return
         }
         busy = true
@@ -198,6 +221,101 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** "/drive" (status), "/drive login" (connect Google Drive), "/drive logout" (forget the token). */
+    private fun driveCommand(cmd: String) {
+        viewModelScope.launch {
+            try {
+                when {
+                    cmd.startsWith("/drive logout") -> {
+                        driveAuth.signOut()
+                        messages += ChatMessage(false, "Đã quên token Google Drive trong bộ nhớ. Quyền cấp cho app vẫn còn trong tài khoản Google.")
+                    }
+                    cmd.startsWith("/drive login") -> {
+                        if (driveAuth.authorize(interactive = true) != null) {
+                            messages += ChatMessage(false, "Đã kết nối Google Drive. Thử: \"tìm <tên bài> trên drive\".")
+                        } else {
+                            messages += ChatMessage(false, "Đang mở màn hình cấp quyền Google Drive…")
+                        }
+                    }
+                    else -> {
+                        val ok = driveAuth.isAuthorized || driveAuth.authorize(interactive = false) != null
+                        messages += ChatMessage(
+                            false,
+                            if (ok) "Google Drive: đã kết nối (chỉ đọc). Thử: \"tìm <tên bài> trên drive\"."
+                            else "Google Drive: chưa kết nối. Gõ /drive login để cấp quyền.",
+                        )
+                    }
+                }
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Drive command failed: ${e.javaClass.simpleName}")
+                messages += ChatMessage(false, e.message ?: "Lỗi Google Drive.")
+            } finally {
+                busy = false
+            }
+        }
+    }
+
+
+    /**
+     * "/meta": looks up songs with missing genre/year/album (or unknown artist) on MusicBrainz and
+     * stores suggestions in LaHo's database only (never the files). "/stop" cancels;
+     * "/meta" again resumes; "/meta reset" forgets the stored suggestions.
+     */
+    private fun metaCommand(cmd: String) {
+        val ctx = getApplication<Application>()
+        if (cmd.startsWith("/meta reset")) {
+            viewModelScope.launch {
+                try {
+                    vn.laho.musicplayer.mood.metadataStore(ctx).clear()
+                    messages += ChatMessage(false, "Đã xoá các gợi ý metadata đã lưu.")
+                } finally {
+                    busy = false
+                }
+            }
+            return
+        }
+        messages += ChatMessage(false, "Đang tra metadata trên MusicBrainz… (gõ /stop để dừng, chạy lại sẽ tiếp tục; không sửa file nhạc)")
+        val progressAt = messages.lastIndex
+        indexJob = viewModelScope.launch {
+            try {
+                val report = vn.laho.musicplayer.metadata.AndroidMetadata.batch(ctx).run { p ->
+                    if (p.current != null) {
+                        messages[progressAt] = ChatMessage(false, "Tra metadata ${p.done + 1}/${p.total}: ${p.current}")
+                    }
+                }
+                val summary = "Tra metadata xong: ${report.candidates} bài thiếu thông tin" +
+                    (if (report.skipped > 0) " (${report.skipped} bài đã tra trước đó)" else "") +
+                    ". Tìm thấy ${report.found}, không thấy ${report.notFound}" +
+                    (if (report.failed > 0) ", lỗi ${report.failed} (chạy lại /meta để thử lại)" else "") + "." +
+                    (report.lastError?.let { " Lỗi cuối: $it." } ?: "") +
+                    " Gợi ý chỉ lưu trong LaHo (dùng cho chỉ mục tâm trạng), file nhạc không bị sửa. " +
+                    "Dữ liệu: MusicBrainz. Chạy /index để chỉ mục dùng thể loại/năm mới."
+                Log.i(TAG, summary)
+                messages += ChatMessage(false, summary)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                messages += ChatMessage(false, "Đã dừng. Gõ /meta để tiếp tục từ chỗ dừng.")
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Metadata batch failed", e)
+                messages += ChatMessage(false, "Tra metadata lỗi: ${e.message}")
+            } finally {
+                busy = false
+            }
+        }
+    }
+
+    /** Called with the result of the Google consent screen. */
+    fun onDriveConsentResult(data: Intent?) {
+        val ok = driveAuth.onConsentResult(data)
+        messages += ChatMessage(
+            false,
+            if (ok) "Đã kết nối Google Drive. Hãy nói lại yêu cầu, ví dụ \"tìm <tên bài> trên drive\"."
+            else "Chưa cấp quyền Google Drive.",
+        )
+    }
+
     private fun llmErrorHint(error: String?): String {
         if (error == null) return ""
         val lower = error.lowercase()
@@ -283,6 +401,15 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit) {
             ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
             ?.firstOrNull()
         if (!spoken.isNullOrBlank()) viewModel.send(spoken)
+    }
+
+    val driveConsent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+        viewModel.onDriveConsentResult(result.data)
+    }
+    val pendingConsent by viewModel.driveAuth.pending.collectAsState()
+    LaunchedEffect(pendingConsent) {
+        val intent = viewModel.driveAuth.consumePending() ?: return@LaunchedEffect
+        driveConsent.launch(IntentSenderRequest.Builder(intent.intentSender).build())
     }
 
     LaunchedEffect(viewModel.messages.size) {

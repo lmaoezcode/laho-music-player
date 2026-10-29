@@ -5,6 +5,8 @@ ksp = "2.3.6"
 # LaHo: Firebase AI Logic (Gemini) + App Check
 firebaseBom = "35.0.1"
 googleServices = "4.5.0"
+# LaHo: Google Drive authorization (Identity AuthorizationClient)
+playServicesAuth = "21.4.0"
 kotlinxSerializationJson = "1.8.1"
 coreKtx = "1.19.1"
 core = "1.19.1"
@@ -54,6 +56,8 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
 firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity" }
 firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
+# LaHo: Google Drive authorization
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 # JSON types used in firebase-ai function-calling APIs (same version firebase-ai resolves)
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-window = { group = "androidx.window", name = "window", version.ref = "window" }

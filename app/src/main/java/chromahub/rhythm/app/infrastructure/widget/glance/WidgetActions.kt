@@ -28,7 +28,7 @@ private fun hasActiveSongSnapshot(context: Context): Boolean {
     val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
     val title = prefs.getString("song_title", "").orEmpty().trim()
     val artist = prefs.getString("artist_name", "").orEmpty().trim()
-    val isIdleDefault = title.equals("Rhythm", ignoreCase = true) && artist.isBlank()
+    val isIdleDefault = (title.equals("LaHo", ignoreCase = true) || title.equals("Rhythm", ignoreCase = true)) && artist.isBlank()
     return title.isNotBlank() && !isIdleDefault
 }
 

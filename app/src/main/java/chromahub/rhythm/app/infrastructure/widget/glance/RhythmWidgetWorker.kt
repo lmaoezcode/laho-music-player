@@ -29,7 +29,7 @@ class RhythmWidgetWorker(
             val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
             
             val songId = prefs.getString(RhythmMusicWidget.KEY_SONG_ID, "") ?: ""
-            val songTitle = prefs.getString(RhythmMusicWidget.KEY_SONG_TITLE, "Rhythm") ?: "Rhythm"
+            val songTitle = prefs.getString(RhythmMusicWidget.KEY_SONG_TITLE, "LaHo") ?: "LaHo"
             val artistName = prefs.getString(RhythmMusicWidget.KEY_ARTIST_NAME, "") ?: ""
             val albumName = prefs.getString(RhythmMusicWidget.KEY_ALBUM_NAME, "") ?: ""
             val isPlaying = prefs.getBoolean(RhythmMusicWidget.KEY_IS_PLAYING, false)

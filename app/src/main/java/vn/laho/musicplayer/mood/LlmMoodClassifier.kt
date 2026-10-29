@@ -52,6 +52,7 @@ data class MoodInput(
     val album: String,
     val genre: String?,
     val features: AudioFeatures?,
+    val year: Int? = null,
 )
 
 data class MoodVerdict(
@@ -84,6 +85,7 @@ class LlmMoodClassifier(private val model: JsonTextModel, val modelName: String)
                 put("artist", s.artist)
                 if (s.album.isNotBlank() && !s.album.startsWith("<unknown", true)) put("album", s.album)
                 s.genre?.takeIf { it.isNotBlank() }?.let { put("genre", it) }
+                s.year?.takeIf { it > 0 }?.let { put("year", it) }
                 s.features?.let { f ->
                     if (f.bpm > 0) put("bpm", f.bpm.toInt())
                     // Locale-independent rounding (String.format would use "," in vi-VN).

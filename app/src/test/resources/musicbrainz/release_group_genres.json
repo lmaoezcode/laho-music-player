@@ -1,0 +1,6 @@
+{
+  "id": "rg-album",
+  "title": "m-tp M-TP",
+  "genres": [{"id": "g1", "name": "pop", "count": 3}, {"id": "g2", "name": "vietnamese pop", "count": 5}],
+  "tags": [{"count": 12, "name": "seen live"}]
+}

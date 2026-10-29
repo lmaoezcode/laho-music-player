@@ -434,7 +434,7 @@ fun ExternalCapabilitiesSettingsScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "External software decoding overrides and float PCM pipeline are currently disabled. Rhythm is operating directly using standard platform media codecs.",
+                            text = "External software decoding overrides and float PCM pipeline are currently disabled. LaHo is operating directly using standard platform media codecs.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

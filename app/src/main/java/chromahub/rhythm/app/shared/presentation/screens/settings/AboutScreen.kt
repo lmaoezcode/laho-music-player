@@ -258,6 +258,24 @@ fun AboutScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
+
+                        // LaHo: credit the upstream project (GPL-3.0) right under the app name.
+                        Text(
+                            text = stringResource(R.string.laho_based_on_rhythm),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(R.string.laho_upstream_repo_label),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { openUrl(LAHO_UPSTREAM_REPO_URL) }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
                 }
             }
@@ -349,8 +367,8 @@ fun AboutScreen(
                         shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
                         onClick = {
                             val allInfo = buildString {
-                                appendLine("=== Rhythm System Information ===")
-                                appendLine("App: Rhythm")
+                                appendLine("=== LaHo Music Player System Information ===")
+                                appendLine("App: LaHo Music Player (based on Rhythm)")
                                 appendLine("Version: ${BuildConfig.VERSION_NAME}")
                                 appendLine("Build: ${BuildConfig.VERSION_CODE} ($buildVariant)")
                                 appendLine("Target SDK: ${appInfo.targetSdkVersion}")
@@ -511,8 +529,8 @@ fun AboutScreen(
                         item = SettingItem(
                             icon = RhythmIcons.BugReport,
                             title = context.getString(R.string.settings_about_report_bug),
-                            description = "github.com/cromaguy/Rhythm/issues",
-                            onClick = { openUrl("https://github.com/cromaguy/Rhythm/issues") }
+                            description = "github.com/lmaoezcode/laho-music-player/issues",
+                            onClick = { openUrl("$LAHO_REPO_URL/issues") }
                         )
                     ),
                     toMaterial3SettingsItem(
@@ -529,20 +547,10 @@ fun AboutScreen(
                         context = context,
                         hapticFeedback = haptics,
                         item = SettingItem(
-                            icon = MaterialSymbolIcon("chat", filled = true),
-                            title = stringResource(R.string.aboutscreen_discord_community),
-                            description = "discord.gg/XjPyUYPQYc",
-                            onClick = { openUrl("https://discord.gg/XjPyUYPQYc") }
-                        )
-                    ),
-                    toMaterial3SettingsItem(
-                        context = context,
-                        hapticFeedback = haptics,
-                        item = SettingItem(
-                            icon = MaterialSymbolIcon("send", filled = true),
-                            title = stringResource(R.string.cd_telegram_support),
-                            description = "t.me/RhythmSupport",
-                            onClick = { openUrl("https://t.me/RhythmSupport") }
+                            icon = MaterialSymbolIcon("code", filled = true),
+                            title = context.getString(R.string.laho_upstream_project_title),
+                            description = context.getString(R.string.laho_based_on_rhythm),
+                            onClick = { openUrl(LAHO_UPSTREAM_REPO_URL) }
                         )
                     ),
                     toMaterial3SettingsItem(
@@ -577,6 +585,10 @@ fun AboutScreen(
     }
 }
 
+
+/** LaHo Music Player repository and the upstream project it is based on (GPL-3.0). */
+private const val LAHO_REPO_URL = "https://github.com/lmaoezcode/laho-music-player"
+private const val LAHO_UPSTREAM_REPO_URL = "https://github.com/cromaguy/Rhythm"
 
 @Composable
 fun DeveloperCard(

@@ -33,8 +33,18 @@ class ToolRegistry(tools: List<AssistantTool>) {
     }
 
     companion object {
+        private fun driveTools(drive: vn.laho.musicplayer.drive.DriveGateway?): Array<AssistantTool?> {
+            if (drive == null) return emptyArray()
+            val session = DriveSession()
+            return arrayOf(DriveSearchTool(drive, session), DriveDownloadTool(drive, session))
+        }
+
         /** [moodIndex] enables play_by_mood (LaHo mood index); null when not available. */
-        fun default(player: PlayerGateway, moodIndex: vn.laho.musicplayer.mood.MoodIndex? = null) = ToolRegistry(
+        fun default(
+            player: PlayerGateway,
+            moodIndex: vn.laho.musicplayer.mood.MoodIndex? = null,
+            drive: vn.laho.musicplayer.drive.DriveGateway? = null,
+        ) = ToolRegistry(
             listOfNotNull(
                 PlaybackControlTool(player),
                 SetVolumeTool(player),
@@ -42,6 +52,7 @@ class ToolRegistry(tools: List<AssistantTool>) {
                 NowPlayingTool(player),
                 LibraryOverviewTool(player, moodIndex),
                 moodIndex?.let { PlayByMoodTool(player, it) },
+                *driveTools(drive),
             ),
         )
     }
