@@ -21,6 +21,11 @@ import androidx.media3.exoplayer.audio.ForwardingAudioSink
 import com.decent.usbaudio.NativeAudioEngine
 import com.decent.usbaudio.UsbAudioDevice
 import com.decent.usbaudio.UsbAudioStream
+import com.decent.usbaudio.UsbRatePolicy
+import com.decent.usbaudio.UsbRateRejection
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -48,6 +53,69 @@ class UsbAudioSink(
 
     /** Source file bit depth (16, 24, 32). Auto-detected from NativeAudioEngine. */
     private var trackBitDepth: Int = 0
+
+    // -- LaHo: signal path for the UI (rate, bit depth, engine, DAC, bit-perfect) --
+    private val _signalPath = MutableStateFlow(UsbSignalPath.INACTIVE)
+
+    /** LaHo: what the driver is doing right now; [UsbSignalPath.INACTIVE] when not streaming. */
+    val signalPath: StateFlow<UsbSignalPath> = _signalPath.asStateFlow()
+
+    private var currentDacName: String = ""
+    private var currentUsbBitDepth: Int = 0
+    private var currentDacReportedRate: Int = 0
+    private var currentSupportedRates: List<Int> = emptyList()
+
+    private fun publishSignalPath() {
+        val active = usbAudioStream?.isAlive == true
+        if (!active) {
+            val last = _signalPath.value
+            // Keep a fallback notice visible until a stream runs again.
+            _signalPath.value = if (last.isFallback) {
+                last.copy(active = false, engine = UsbEngine.NONE, bitPerfect = false)
+            } else UsbSignalPath.INACTIVE
+            return
+        }
+        val engine = if (nativeEngine != null) UsbEngine.NATIVE_FLAC else UsbEngine.EXOPLAYER
+        val sourceBits = if (engine == UsbEngine.NATIVE_FLAC) trackBitDepth else when (currentEncoding) {
+            C.ENCODING_PCM_16BIT -> 16
+            C.ENCODING_PCM_24BIT -> 24
+            C.ENCODING_PCM_32BIT -> 32
+            C.ENCODING_PCM_FLOAT -> UsbSignalPath.FLOAT_SOURCE_BITS
+            else -> 0
+        }
+        _signalPath.value = UsbSignalPath(
+            active = true,
+            dacName = currentDacName,
+            sampleRateHz = currentSampleRate,
+            dacReportedRateHz = currentDacReportedRate,
+            sourceBitDepth = sourceBits,
+            usbBitDepth = currentUsbBitDepth,
+            engine = engine,
+            bitPerfect = UsbSignalPath.isBitPerfect(
+                true, currentSampleRate, currentDacReportedRate, sourceBits, currentUsbBitDepth
+            ),
+            supportedRates = currentSupportedRates,
+        )
+    }
+
+    /**
+     * LaHo: the DAC cannot take [sampleRate] (or the stream failed): the track goes to
+     * Android's normal pipeline (the delegate, unmuted, default routing) instead of
+     * silence, and the reason is published so the app can tell the user.
+     */
+    private fun onUsbUnavailable(sampleRate: Int, reason: UsbRateRejection) {
+        Log.w(TAG, "USB bit-perfect unavailable for $sampleRate Hz: $reason, using Android pipeline")
+        if (usbAudioStream != null) releaseUsbStream()
+        clearForcedRouting()
+        unmuteDelegateIfNeeded()
+        _signalPath.value = UsbSignalPath(
+            active = false,
+            dacName = currentDacName,
+            fallbackRateHz = sampleRate,
+            fallbackReason = reason,
+            supportedRates = currentSupportedRates,
+        )
+    }
 
     /** True when the native engine is running. Read by [NativeEngineAwareLoadControl]
      *  to stop ExoPlayer from loading data (prevents SD card I/O contention).
@@ -78,7 +146,8 @@ class UsbAudioSink(
             // Apply deferred USB reconfiguration (cross-rate transition)
             if (hasDeferredConfig) {
                 Log.i(TAG, "cleanupFinishedEngine: applying deferred config rate=$deferredRate")
-                configureUsbBitPerfect(deferredRate, deferredChannels, deferredEncoding)
+                val rejection = configureUsbBitPerfect(deferredRate, deferredChannels, deferredEncoding)
+                if (rejection != null) onUsbUnavailable(deferredRate, rejection)
                 hasDeferredConfig = false
             }
             return true
@@ -218,7 +287,13 @@ class UsbAudioSink(
         if (config.bitPerfectEnabled && sr != null && ch != null) {
             val device = usbAudioDevice.findUsbAudioDevice()
             if (device != null && usbAudioDevice.hasPermission(device)) {
-                configureUsbBitPerfect(sr, ch, enc)
+                val rejection = configureUsbBitPerfect(sr, ch, enc)
+                if (rejection != null) {
+                    // LaHo: fall back to Android's pipeline instead of a muted, silent delegate.
+                    onUsbUnavailable(sr, rejection)
+                    super.configure(audioSinkConfig)
+                    return
+                }
                 windowOffsetUs = -1L
                 usbStartMediaTimeNeedsInit = true
                 if (config.forceRouteToSpeaker) forceMediaToSpeaker()
@@ -236,6 +311,7 @@ class UsbAudioSink(
         if (usbAudioStream != null && !config.bitPerfectEnabled) {
             releaseUsbStream()
         }
+        publishSignalPath()
     }
 
     /**
@@ -508,7 +584,8 @@ class UsbAudioSink(
 
     // ── USB bit-perfect configuration ───────────────────────────────
 
-    private fun configureUsbBitPerfect(sampleRate: Int, channelCount: Int, encoding: Int) {
+    /** @return null when the stream runs, otherwise why it could not (LaHo). */
+    private fun configureUsbBitPerfect(sampleRate: Int, channelCount: Int, encoding: Int): UsbRateRejection? {
         // NOTE: engine is NOT destroyed here. configure() returns early if engine
         // is still running. If we reach here, the engine is already dead or null.
 
@@ -517,17 +594,19 @@ class UsbAudioSink(
             && usbAudioStream?.isAlive == true) {
             Log.d(TAG, "USB stream cached for rate=$sampleRate ch=$channelCount — reusing")
             // Engine will be created lazily in handleBuffer when currentTrackPath is set
-            return
+            return null
         }
 
         if (usbAudioStream != null) releaseUsbStream()
 
-        val usbDevice = usbAudioDevice.findUsbAudioDevice() ?: return
+        val usbDevice = usbAudioDevice.findUsbAudioDevice() ?: return UsbRateRejection.STREAM_FAILED
         var deviceInfo = usbAudioDevice.openDevice(usbDevice)
         if (deviceInfo == null) {
             Log.e(TAG, "Failed to open USB device")
-            return
+            return UsbRateRejection.STREAM_FAILED
         }
+        currentDacName = deviceInfo.deviceName
+        currentSupportedRates = UsbRatePolicy.supportedRates(deviceInfo.supportedSampleRates)
 
         // Always use the DAC's highest supported bit depth (standard practice).
         // Sources with lower bit depth are zero-padded in the LSBs.
@@ -535,6 +614,24 @@ class UsbAudioSink(
         val altSetting = deviceInfo.bestAltSetting
         Log.i(TAG, "Bit-perfect: source=${trackBitDepth}bit → alt=$altSetting usb=${bitDepth}bit " +
                 "clockSource=0x${deviceInfo.clockSourceId.toString(16)}")
+
+        // LaHo: check the rate against the clock source's GET RANGE and the packet size of
+        // the alt setting that will stream (fpmf x 2^(bInterval-1) x bytesPerFrame).
+        val altFormat = deviceInfo.altFormat(altSetting)
+        val interval = altFormat?.interval?.takeIf { it > 0 } ?: deviceInfo.endpointOutInterval
+        val rawMaxPacket = altFormat?.rawMaxPacketSize?.takeIf { it > 0 } ?: deviceInfo.maxPacketSize
+        UsbRatePolicy.check(
+            sampleRateHz = sampleRate,
+            channelCount = channelCount,
+            bytesPerSample = bitDepth / 8,
+            interval = interval,
+            rawMaxPacketSize = rawMaxPacket,
+            ranges = deviceInfo.supportedSampleRates,
+        )?.let { rejection ->
+            Log.w(TAG, "Rate $sampleRate Hz rejected: $rejection (alt=$altSetting interval=$interval " +
+                    "maxPacket=$rawMaxPacket ranges=${deviceInfo.supportedSampleRates})")
+            return rejection
+        }
 
         var stream = UsbAudioStream(
             fd = deviceInfo.fd,
@@ -545,13 +642,13 @@ class UsbAudioSink(
             channelCount = channelCount,
             bitDepth = bitDepth,
             maxPacketSize = deviceInfo.maxPacketSize,
-            endpointInterval = deviceInfo.endpointOutInterval // LaHo
+            endpointInterval = interval // LaHo: bInterval of the alt that streams
         )
 
         if (!stream.isReady) {
             Log.e(TAG, "USB stream creation failed")
             stream.release()
-            return
+            return UsbRateRejection.STREAM_FAILED
         }
 
         // ─── xHCI-verified transition sequence (from USB protocol analysis) ───
@@ -572,7 +669,7 @@ class UsbAudioSink(
             deviceInfo = usbAudioDevice.openDevice(usbDevice)
             if (deviceInfo == null) {
                 Log.e(TAG, "Failed to reopen USB device")
-                return
+                return UsbRateRejection.STREAM_FAILED
             }
             stream = UsbAudioStream(
                 fd = deviceInfo.fd,
@@ -583,23 +680,31 @@ class UsbAudioSink(
                 channelCount = channelCount,
                 bitDepth = bitDepth,
                 maxPacketSize = deviceInfo.maxPacketSize,
-            endpointInterval = deviceInfo.endpointOutInterval // LaHo
+            endpointInterval = interval // LaHo
             )
             if (!stream.isReady) {
                 Log.e(TAG, "USB stream recreation failed after reopen")
                 stream.release()
-                return
+                return UsbRateRejection.STREAM_FAILED
             }
             Log.i(TAG, "Device reopened with fresh fd=${deviceInfo.fd}")
         }
         Log.i(TAG, "Step 1: setAlt(0) — old ISO ring freed")
 
         // Step 2: SET_CUR — write new sample rate
-        usbAudioDevice.setSampleRate(sampleRate)
+        // LaHo: read the rate back with GET_CUR; a DAC that keeps another rate is refused.
+        val readBack = usbAudioDevice.setSampleRateVerified(sampleRate)
+        UsbRatePolicy.verifyReadBack(sampleRate, readBack)?.let { rejection ->
+            Log.w(TAG, "DAC did not switch to $sampleRate Hz (reports $readBack Hz)")
+            stream.release()
+            usbAudioDevice.setAltSetting(0)
+            return rejection
+        }
+        currentDacReportedRate = readBack
 
         // Step 3: GET_CUR(CLOCK_VALID_CONTROL) — verify clock is locked
         val clockValid = usbAudioDevice.readClockValid()
-        Log.i(TAG, "Step 2-3: SET_CUR=$sampleRate, CLOCK_VALID=$clockValid")
+        Log.i(TAG, "Step 2-3: SET_CUR=$sampleRate, GET_CUR=$readBack, CLOCK_VALID=$clockValid")
 
         // Step 4: setAlt(0) AGAIN — defensive reset after clock change
         usbAudioDevice.setAltSetting(0)
@@ -615,12 +720,13 @@ class UsbAudioSink(
         if (!stream.start()) {
             Log.e(TAG, "USB stream start failed")
             stream.release()
-            return
+            return UsbRateRejection.STREAM_FAILED
         }
 
         usbAudioStream = stream
         currentSampleRate = sampleRate
         currentChannelCount = channelCount
+        currentUsbBitDepth = bitDepth
         muteDelegateIfNeeded()
 
         // Try to create engine now (works for first track where onMediaItemTransition
@@ -630,6 +736,8 @@ class UsbAudioSink(
 
         Log.i(TAG, "USB bit-perfect stream ACTIVE: rate=$sampleRate ch=$channelCount " +
                 "bits=$bitDepth device=${deviceInfo.deviceName}")
+        publishSignalPath()
+        return null
     }
 
     /** Try to start a native FLAC engine. Falls back to ExoPlayer streaming thread. */
@@ -670,6 +778,7 @@ class UsbAudioSink(
                         activeEnginePath = path
                         trackBitDepth = engine.getBitsPerSample()
                         Log.i(TAG, "Native FLAC engine started (paused, awaiting seek) for: ${File(path).name} ${trackBitDepth}-bit")
+                        publishSignalPath()
                         return
                     }
                 }
@@ -682,6 +791,7 @@ class UsbAudioSink(
         // Fallback: ExoPlayer pipeline via streaming thread
         usbStreamingThread = UsbStreamingThread(stream).also { it.start() }
         Log.i(TAG, "Using ExoPlayer pipeline (non-FLAC or engine failed)")
+        publishSignalPath()
     }
 
     // ── USB stream release ──────────────────────────────────────────
@@ -716,6 +826,7 @@ class UsbAudioSink(
         clearForcedRouting()
         unmuteDelegateIfNeeded()
         Log.i(TAG, "USB audio stream released (device kept open)")
+        publishSignalPath()
     }
 
     // ── Delegate volume management ──────────────────────────────────

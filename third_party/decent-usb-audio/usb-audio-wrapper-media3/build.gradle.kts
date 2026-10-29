@@ -23,4 +23,6 @@ dependencies {
     api(project(":decent-usb-audio-driver"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.media3.exoplayer)
+    // LaHo: UsbAudioSink.signalPath is a StateFlow
+    api(libs.org.jetbrains.kotlinx.coroutines.core)
 }

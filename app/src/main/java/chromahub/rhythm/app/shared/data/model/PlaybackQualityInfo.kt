@@ -52,7 +52,9 @@ data class PlaybackQualityInfo(
     val qualityLabel: String = "",
     val qualityDescription: String = "",
     val outputQualityStatus: String = "",
-    val iconResId: Int = R.drawable.ic_hd
+    val iconResId: Int = R.drawable.ic_hd,
+    // LaHo: output path of LaHo's USB driver / float DSP (null in Rhythm's own modes)
+    val lahoSignalPath: vn.laho.musicplayer.signal.SignalPathInfo? = null
 ) : Parcelable {
 
     val displaySubheading: String

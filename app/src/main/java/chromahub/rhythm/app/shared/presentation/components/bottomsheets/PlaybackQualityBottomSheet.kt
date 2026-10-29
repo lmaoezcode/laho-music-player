@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import chromahub.rhythm.app.R
+import vn.laho.musicplayer.signal.SignalPathInfo
 import chromahub.rhythm.app.shared.data.model.PlaybackQualityInfo
 import chromahub.rhythm.app.shared.data.model.Song
 import chromahub.rhythm.app.shared.presentation.components.common.MarqueeText
@@ -263,6 +264,17 @@ fun PlaybackQualityBottomSheet(
                 tintContainer = MaterialTheme.colorScheme.secondaryContainer
             )
 
+            // LaHo: "Signal path" for the LaHo USB driver / float DSP
+            quality.lahoSignalPath?.let { path ->
+                QualityMetadataGridCard(
+                    title = stringResource(R.string.laho_signal_path_title),
+                    icon = MaterialSymbolIcon("route", filled = true),
+                    items = lahoSignalPathItems(path),
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    tintContainer = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -307,6 +319,111 @@ fun PlaybackQualityBottomSheet(
                     )
                 }
             }
+        }
+    }
+}
+
+/** LaHo: rows of the "Signal path" card. */
+@Composable
+private fun lahoSignalPathItems(path: SignalPathInfo): List<QualityMetadataItem> {
+    return buildList {
+        add(
+            QualityMetadataItem(
+                label = stringResource(R.string.laho_signal_mode),
+                value = stringResource(
+                    when (path.mode) {
+                        SignalPathInfo.Mode.USB_DRIVER -> R.string.laho_signal_mode_usb
+                        SignalPathInfo.Mode.USB_FALLBACK -> R.string.laho_signal_mode_usb_fallback
+                        SignalPathInfo.Mode.LAHO_DSP -> R.string.laho_signal_mode_dsp
+                    }
+                ),
+                icon = MaterialSymbolIcon("route", filled = true),
+                isWide = true
+            )
+        )
+        when (path.mode) {
+            SignalPathInfo.Mode.USB_DRIVER -> {
+                val rate = PlaybackQualityInfo.formatSampleRate(path.sampleRateHz)
+                add(
+                    QualityMetadataItem(
+                        label = stringResource(R.string.laho_signal_rate),
+                        value = if (path.dacReportedRateHz > 0) {
+                            stringResource(
+                                R.string.laho_signal_rate_dac, rate,
+                                PlaybackQualityInfo.formatSampleRate(path.dacReportedRateHz)
+                            )
+                        } else rate,
+                        icon = MaterialSymbolIcon("graphic_eq", filled = true)
+                    )
+                )
+                add(
+                    QualityMetadataItem(
+                        label = stringResource(R.string.laho_signal_bits),
+                        value = stringResource(R.string.laho_signal_bits_value, path.sourceBitDepth, path.outputBitDepth),
+                        icon = MaterialSymbolIcon("layers", filled = true)
+                    )
+                )
+                add(
+                    QualityMetadataItem(
+                        label = stringResource(R.string.laho_signal_engine),
+                        value = stringResource(
+                            if (path.engine == SignalPathInfo.Engine.NATIVE_FLAC) {
+                                R.string.laho_signal_engine_native_flac
+                            } else R.string.laho_signal_engine_exoplayer
+                        ),
+                        icon = MaterialSymbolIcon("memory", filled = true)
+                    )
+                )
+                add(
+                    QualityMetadataItem(
+                        label = stringResource(R.string.laho_signal_dac),
+                        value = path.dacName.ifBlank { "USB DAC" },
+                        icon = MaterialSymbolIcon("usb", filled = true)
+                    )
+                )
+                add(
+                    QualityMetadataItem(
+                        label = stringResource(R.string.laho_signal_bit_perfect),
+                        value = stringResource(
+                            if (path.isBitPerfect) R.string.laho_signal_bit_perfect_yes else R.string.laho_signal_bit_perfect_no
+                        ),
+                        icon = MaterialSymbolIcon(if (path.isBitPerfect) "check_circle" else "info", filled = true),
+                        isWide = true
+                    )
+                )
+            }
+            SignalPathInfo.Mode.USB_FALLBACK -> add(
+                QualityMetadataItem(
+                    label = stringResource(R.string.laho_signal_dac),
+                    value = stringResource(
+                        R.string.laho_signal_fallback,
+                        PlaybackQualityInfo.formatSampleRate(path.fallbackRateHz),
+                        stringResource(vn.laho.musicplayer.usb.LahoUsbAudio.fallbackReasonText(path.fallbackReason))
+                    ),
+                    icon = MaterialSymbolIcon("info", filled = true),
+                    isWide = true
+                )
+            )
+            SignalPathInfo.Mode.LAHO_DSP -> add(
+                QualityMetadataItem(
+                    label = stringResource(R.string.laho_signal_processing),
+                    value = if (path.peqEnabled && path.peqBandCount > 0) {
+                        stringResource(R.string.laho_signal_dsp_peq, path.peqBandCount)
+                    } else stringResource(R.string.laho_signal_dsp_peq_off),
+                    icon = MaterialSymbolIcon("tune", filled = true),
+                    isWide = true
+                )
+            )
+        }
+        if (path.mode != SignalPathInfo.Mode.LAHO_DSP && path.dacSupportedRates.isNotEmpty()) {
+            add(
+                QualityMetadataItem(
+                    label = stringResource(R.string.laho_signal_dac_rates),
+                    value = path.dacSupportedRates.joinToString(" · ") { PlaybackQualityInfo.formatSampleRate(it) },
+                    icon = MaterialSymbolIcon("graphic_eq", filled = true),
+                    isWide = true
+                )
+            )
         }
     }
 }

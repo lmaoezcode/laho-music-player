@@ -33,10 +33,13 @@
 
 /**
  * Max bytes per URB data buffer.
- * Worst case: 384kHz * 4 bytes * 2 channels / 8000 microframes * 8 packets
- *           = 384 * 8 = 3072 bytes per URB. Round up generously.
+ * Upstream sized this for bInterval=1: 384kHz * 4 bytes * 2 channels / 8000 * 8 packets
+ * = 3072 bytes. LaHo: with bInterval=2 a packet spans two microframes, so 192 kHz
+ * 32-bit stereo already needs 8 x 49 frames x 8 bytes = 3136 bytes and 384 kHz needs
+ * 6208. 8192 = 8 packets of the largest single-transaction high-speed packet (1024 B).
+ * Must match UsbPacketBudget.URB_BUFFER_BYTES (Kotlin), which rejects rates that do not fit.
  */
-#define USB_AUDIO_URB_BUFFER_SIZE 4096
+#define USB_AUDIO_URB_BUFFER_SIZE 8192
 
 /**
  * One slot in the pre-allocated URB ring buffer.
