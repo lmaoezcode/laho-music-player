@@ -77,7 +77,14 @@ data class ChatMessage(val fromUser: Boolean, val text: String, val source: Assi
 
 class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     private val gateway = MediaControllerGateway(app)
-    private val gemini = vn.laho.musicplayer.assistant.online.GeminiAssistant.createOrNull(app)
+    private val privacy = vn.laho.musicplayer.privacy.AiPrivacySettings.get(app)
+    private val gemini = vn.laho.musicplayer.privacy.GatedOnlineAssistant(
+        enabled = privacy::isOnlineEnabled,
+        create = { vn.laho.musicplayer.assistant.online.GeminiAssistant.createOrNull(app) },
+    )
+
+    /** True while the "online AI is off" note should show at the top of the chat. */
+    val onlineAiEnabled get() = privacy.enabled
     private val moodStore = vn.laho.musicplayer.mood.RoomMoodStore.get(app)
     val driveAuth = vn.laho.musicplayer.drive.DriveAuth(app)
     private val drive = vn.laho.musicplayer.drive.DriveRepository(
@@ -101,7 +108,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             MoodCommand(app, moodStore),
             DriveCommand(driveAuth),
             MetaCommand(app),
-            BenchCommand(gateway, onlineAvailable = gemini != null),
+            BenchCommand(gateway, onlineAvailable = { gemini.current() != null }, onlineAllowed = privacy::isOnlineEnabled),
         ),
     )
     private var commandJob: Job? = null
@@ -109,7 +116,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
     val messages = mutableStateListOf(
         ChatMessage(
             fromUser = false,
-            text = if (gemini != null) {
+            text = if (gemini.current() != null) {
                 "Xin chào! Mình là trợ lý LaHo. Lệnh cơ bản (\"bài tiếp\", \"tạm dừng\", \"to lên\", " +
                     "\"phát bài …\") chạy offline; yêu cầu khác như \"bật nhạc buồn\" hay " +
                     "\"nhạc để tập gym\" sẽ hỏi Gemini (cần mạng)."
@@ -159,7 +166,7 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
             val started = System.nanoTime()
             val reply = engine.handle(trimmed)
             val ms = (System.nanoTime() - started) / 1_000_000
-            val rounds = if (reply.source == AssistantReply.Source.OFFLINE) 0 else gemini?.lastModelRounds ?: 0
+            val rounds = if (reply.source == AssistantReply.Source.OFFLINE) 0 else (gemini.current() as? vn.laho.musicplayer.assistant.online.GeminiAssistant)?.lastModelRounds ?: 0
             Log.i(
                 TAG,
                 "\"$trimmed\" -> ${reply.toolCall} [${reply.source}, ${ms} ms, $rounds model rounds] ${reply.result?.success}",
@@ -226,6 +233,9 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit) {
         driveConsent.launch(IntentSenderRequest.Builder(intent.intentSender).build())
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val aiEnabled by viewModel.onlineAiEnabled.collectAsState()
+
     LaunchedEffect(viewModel.messages.size) {
         if (viewModel.messages.isNotEmpty()) listState.animateScrollToItem(viewModel.messages.lastIndex)
     }
@@ -244,6 +254,11 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit) {
                 .padding(padding)
                 .imePadding(),
         ) {
+            if (!aiEnabled) {
+                vn.laho.musicplayer.privacy.AiOffNote(
+                    onOpen = { context.startActivity(Intent(context, vn.laho.musicplayer.privacy.AiPrivacyActivity::class.java)) },
+                )
+            }
             LazyColumn(
                 state = listState,
                 modifier = Modifier

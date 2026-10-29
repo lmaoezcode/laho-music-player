@@ -61,3 +61,15 @@ contributors.
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with
 `GPL-3.0-or-later`.
+- 2026-10-29: added a privacy switch "Allow online AI (Gemini)" and an explanation
+  page (`vn.laho.musicplayer.privacy`: `AiPrivacySettings` in its own
+  SharedPreferences, `GatedOnlineAssistant`, `LibrarySummary`, `AiPrivacyActivity`),
+  hooked into `GeminiAssistant.createOrNull`, `AndroidMoodIndexing.indexer`,
+  `/index`, `/bench`, the assistant screen and the external capabilities settings
+  screen. Default ON in debuggable builds, OFF otherwise until the user turns it on.
+  Data sent to Google Gemini (Firebase AI Logic) is limited to the user's utterance,
+  a capped library summary (song count, 10 genres, 10 artists, 5 sample titles,
+  names truncated), tool results, and, for `/index`, title/artist/album/genre/year
+  plus four numbers derived from audio. Audio, file paths/URIs and song ids are
+  never sent. MusicBrainz (`/meta`) and Google Drive (`/drive`) are separate,
+  user-started actions and are not affected by the switch.

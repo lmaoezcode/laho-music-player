@@ -2565,4 +2565,34 @@
     <string name="laho_based_on_rhythm">Dựa trên Rhythm (GPL-3.0) của Anjishnu Nandi</string>
     <string name="laho_upstream_repo_label">github.com/cromaguy/Rhythm</string>
     <string name="laho_upstream_project_title">Dự án gốc: Rhythm</string>
+    <string name="laho_ai_online_title">Cho phép AI online (Gemini)</string>
+    <string name="laho_ai_online_desc">Cho trợ lý gửi câu bạn gõ hoặc nói cùng tóm tắt thư viện ngắn (tên bài, nghệ sĩ, thể loại) tới Google Gemini. Không bao giờ gửi âm thanh hay đường dẫn tệp. Tắt = trợ lý chỉ chạy offline.</string>
+    <string name="laho_ai_privacy_entry">Dữ liệu nào rời khỏi máy?</string>
+    <string name="laho_ai_privacy_entry_desc">Theo từng tính năng: gửi gì, tới dịch vụ nào, và gì không bao giờ rời khỏi điện thoại.</string>
+    <string name="laho_ai_privacy_title">AI và quyền riêng tư</string>
+    <string name="laho_ai_privacy_switch">Cho phép AI online (Gemini)</string>
+    <string name="laho_ai_privacy_switch_hint">Có hiệu lực ngay. Khi tắt, không có gì gửi tới Gemini: lệnh offline, /drive và /meta vẫn dùng được.</string>
+    <string name="laho_ai_privacy_sent">Dữ liệu gửi đi</string>
+    <string name="laho_ai_privacy_to">Gửi tới</string>
+    <string name="laho_ai_privacy_stays">Không bao giờ rời khỏi máy</string>
+    <string name="laho_ai_privacy_stays_body">Âm thanh các bài hát (âm thanh được phân tích ngay trên máy, chỉ rút ra vài con số như nhịp độ, độ ồn), tên tệp, đường dẫn và URI, mã bài nội bộ, toàn bộ danh sách bài, lịch sử nghe, playlist và cài đặt.</string>
+    <string name="laho_ai_privacy_off_title">Cách tắt</string>
+    <string name="laho_ai_privacy_off_body">Dùng công tắc ở trên, hoặc Cài đặt &gt; Khả năng ngoài &gt; Cho phép AI online (Gemini). Khi tắt: trợ lý chỉ hiểu lệnh offline, /index bỏ bước Gemini (vẫn phân tích âm thanh trên máy) và /bench bị từ chối. /meta (MusicBrainz) và /drive (Google Drive) là thao tác riêng do bạn tự bắt đầu, không bị ảnh hưởng.</string>
+    <string name="laho_ai_privacy_f_chat">Yêu cầu trợ lý mà offline không hiểu</string>
+    <string name="laho_ai_privacy_f_chat_sent">Câu của bạn; tóm tắt thư viện (số bài, tối đa 10 thể loại, 10 nghệ sĩ, 5 tên bài mẫu); kết quả các công cụ mô hình gọi (ví dụ tên bài và nghệ sĩ đang phát, tên tệp trên Drive).</string>
+    <string name="laho_ai_privacy_f_chat_to">Google Gemini qua Firebase AI Logic</string>
+    <string name="laho_ai_privacy_f_mood">Chỉ mục tâm trạng (/index)</string>
+    <string name="laho_ai_privacy_f_mood_sent">Mỗi bài: tên bài, nghệ sĩ, album, thể loại, năm và bốn con số rút ra từ âm thanh (nhịp độ, độ ồn, độ sáng, năng lượng), theo lô 25 bài. Không gửi âm thanh, mã bài hay đường dẫn.</string>
+    <string name="laho_ai_privacy_f_mood_to">Google Gemini qua Firebase AI Logic</string>
+    <string name="laho_ai_privacy_f_meta">Tìm metadata (/meta, trình sửa thẻ)</string>
+    <string name="laho_ai_privacy_f_meta_sent">Tên bài, nghệ sĩ và thời lượng của bài thiếu thẻ; ảnh bìa tải theo mã phát hành MusicBrainz. Chỉ chạy khi bạn bắt đầu.</string>
+    <string name="laho_ai_privacy_f_meta_to">MusicBrainz và Cover Art Archive</string>
+    <string name="laho_ai_privacy_f_drive">Google Drive (/drive, \"tìm ... trên drive\")</string>
+    <string name="laho_ai_privacy_f_drive_sent">Từ khoá tìm kiếm và tệp bạn xác nhận tải, từ tài khoản Google của chính bạn (chỉ quyền đọc). Nếu AI online đang bật, tên tệp tìm được có thể được chuyển cho Gemini dưới dạng kết quả công cụ.</string>
+    <string name="laho_ai_privacy_f_drive_to">Google Drive API (và Gemini chỉ như mô tả trên)</string>
+    <string name="laho_ai_privacy_f_voice">Nút giọng nói</string>
+    <string name="laho_ai_privacy_f_voice_sent">Giọng nói do dịch vụ nhận dạng cài trên máy (thường của Google) xử lý, không phải LaHo. Văn bản nhận được rồi theo các quy tắc ở trên.</string>
+    <string name="laho_ai_privacy_f_voice_to">Trình nhận dạng giọng nói của Android</string>
+    <string name="laho_ai_off_note">AI online (Gemini) đang tắt: chỉ chạy lệnh offline.</string>
+    <string name="laho_ai_off_details">Chi tiết / bật</string>
 </resources>

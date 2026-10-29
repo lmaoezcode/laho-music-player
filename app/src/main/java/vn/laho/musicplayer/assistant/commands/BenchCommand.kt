@@ -13,12 +13,17 @@ import vn.laho.musicplayer.assistant.online.GeminiAssistant
 /** "/bench" compares Gemini models on a fixed prompt set (dry run); "/bench lite" or "/bench flash" runs one. */
 class BenchCommand(
     private val gateway: PlayerGateway,
-    private val onlineAvailable: Boolean,
+    private val onlineAvailable: () -> Boolean,
+    private val onlineAllowed: () -> Boolean = { true },
 ) : SlashCommand {
     override val prefixes = listOf("/bench")
 
     override suspend fun run(input: String, chat: ChatSink) {
-        if (!onlineAvailable) {
+        if (!onlineAllowed()) {
+            chat.post("AI online (Gemini) đang tắt nên không chạy benchmark. Bật lại trong Cài đặt → Khả năng ngoài.")
+            return
+        }
+        if (!onlineAvailable()) {
             chat.post("Bản build này không có Firebase nên không chạy được benchmark.")
             return
         }

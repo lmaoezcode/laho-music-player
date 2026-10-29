@@ -29,11 +29,16 @@ object AndroidMoodIndexing {
         }
     }
 
-    /** Creates an indexer; the LLM stage is skipped when this build has no Firebase config. */
-    fun indexer(context: Context, store: MoodStore): MoodIndexer {
+    /** Creates an indexer; the LLM stage is skipped when online AI is off or this build has no Firebase config. */
+    fun indexer(
+        context: Context,
+        store: MoodStore,
+        allowLlm: Boolean = vn.laho.musicplayer.privacy.AiPrivacySettings.get(context).isOnlineEnabled(),
+    ): MoodIndexer {
         val app = context.applicationContext
         val decoder = SegmentDecoder(app)
-        val classifier = if (LahoFirebase.ensure(app)) {
+        // Audio is analysed on-device; only text metadata + feature numbers go to Gemini, and only when allowed.
+        val classifier = if (allowLlm && LahoFirebase.ensure(app)) {
             val model = GeminiAssistant.MODEL_FLASH_LITE
             LlmMoodClassifier(FirebaseJsonTextModel(model), model)
         } else null

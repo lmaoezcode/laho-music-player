@@ -78,6 +78,8 @@ fun ExternalCapabilitiesSettingsScreen(
     val floatOutput by appSettings.audioEngineFloatOutput.collectAsState()
     val lahoDspEnabled by appSettings.lahoDspEnabled.collectAsState()
     val lahoUsbDriverEnabled by appSettings.lahoUsbDriverEnabled.collectAsState()
+    val lahoAiPrivacy = remember { vn.laho.musicplayer.privacy.AiPrivacySettings.get(context) }
+    val lahoAiOnline by lahoAiPrivacy.enabled.collectAsState()
     val disabledDecoders by appSettings.audioEngineDisabledDecoders.collectAsState()
 
     val allDecoders = remember(context) { DeviceCapabilitiesProvider.getAudioDecoders() }
@@ -262,6 +264,35 @@ fun ExternalCapabilitiesSettingsScreen(
                                             context,
                                             vn.laho.musicplayer.assistant.AssistantActivity::class.java
                                         )
+                                    )
+                                }
+                            ),
+                            hapticFeedback = haptics
+                        ),
+                        // LaHo: privacy switch for online AI (Gemini) + explanation page
+                        toMaterial3SettingsItem(
+                            context = context,
+                            item = SettingItem(
+                                icon = MaterialSymbolIcon("shield", filled = true),
+                                title = stringResource(R.string.laho_ai_online_title),
+                                description = stringResource(R.string.laho_ai_online_desc),
+                                toggleState = lahoAiOnline,
+                                onToggleChange = {
+                                    HapticUtils.performHapticFeedback(context, haptics, HapticType.LIGHT)
+                                    lahoAiPrivacy.setOnlineEnabled(it)
+                                }
+                            ),
+                            hapticFeedback = haptics
+                        ),
+                        toMaterial3SettingsItem(
+                            context = context,
+                            item = SettingItem(
+                                icon = MaterialSymbolIcon("privacy_tip", filled = true),
+                                title = stringResource(R.string.laho_ai_privacy_entry),
+                                description = stringResource(R.string.laho_ai_privacy_entry_desc),
+                                onClick = {
+                                    context.startActivity(
+                                        android.content.Intent(context, vn.laho.musicplayer.privacy.AiPrivacyActivity::class.java)
                                     )
                                 }
                             ),

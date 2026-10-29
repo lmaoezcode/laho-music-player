@@ -2981,4 +2981,34 @@
     <string name="laho_based_on_rhythm">Based on Rhythm (GPL-3.0) by Anjishnu Nandi</string>
     <string name="laho_upstream_repo_label">github.com/cromaguy/Rhythm</string>
     <string name="laho_upstream_project_title">Upstream project: Rhythm</string>
+    <string name="laho_ai_online_title">Allow online AI (Gemini)</string>
+    <string name="laho_ai_online_desc">Lets the assistant send your typed or spoken request and a short library summary (titles, artists, genres) to Google Gemini. Never audio or file paths. Off = the assistant works offline only.</string>
+    <string name="laho_ai_privacy_entry">What data leaves the device?</string>
+    <string name="laho_ai_privacy_entry_desc">Per feature: what is sent, to which service, and what never leaves your phone.</string>
+    <string name="laho_ai_privacy_title">AI and privacy</string>
+    <string name="laho_ai_privacy_switch">Allow online AI (Gemini)</string>
+    <string name="laho_ai_privacy_switch_hint">Applies immediately. When off, nothing is sent to Gemini: offline commands, /drive and /meta still work.</string>
+    <string name="laho_ai_privacy_sent">Sent</string>
+    <string name="laho_ai_privacy_to">To</string>
+    <string name="laho_ai_privacy_stays">Never leaves your device</string>
+    <string name="laho_ai_privacy_stays_body">The audio of your songs (audio is analysed on the phone; only a few numbers such as tempo and loudness are derived), file names, file paths and URIs, internal song ids, your full track list, listening history, playlists and settings.</string>
+    <string name="laho_ai_privacy_off_title">How to turn it off</string>
+    <string name="laho_ai_privacy_off_body">Use the switch above, or Settings &gt; External capabilities &gt; Allow online AI (Gemini). With it off: the assistant understands offline commands only, /index skips the Gemini step (audio analysis still runs on the phone) and /bench is refused. /meta (MusicBrainz) and /drive (Google Drive) are separate actions you start yourself and are not affected.</string>
+    <string name="laho_ai_privacy_f_chat">Assistant requests not understood offline</string>
+    <string name="laho_ai_privacy_f_chat_sent">Your sentence; a library summary (song count, up to 10 genres, 10 artists, 5 sample titles); results of tools the model calls (e.g. the title and artist now playing, Drive file names).</string>
+    <string name="laho_ai_privacy_f_chat_to">Google Gemini via Firebase AI Logic</string>
+    <string name="laho_ai_privacy_f_mood">Mood index (/index)</string>
+    <string name="laho_ai_privacy_f_mood_sent">Per song: title, artist, album, genre, year and four numbers derived from audio (tempo, loudness, brightness, energy), in batches of 25. No audio, ids or paths.</string>
+    <string name="laho_ai_privacy_f_mood_to">Google Gemini via Firebase AI Logic</string>
+    <string name="laho_ai_privacy_f_meta">Find metadata (/meta, tag editor)</string>
+    <string name="laho_ai_privacy_f_meta_sent">Title, artist and duration of songs with missing tags; cover art is downloaded by MusicBrainz release id. Only when you start it.</string>
+    <string name="laho_ai_privacy_f_meta_to">MusicBrainz and Cover Art Archive</string>
+    <string name="laho_ai_privacy_f_drive">Google Drive (/drive, \"find ... on drive\")</string>
+    <string name="laho_ai_privacy_f_drive_sent">Your search words, and the file you confirm to download, from your own Google account (read-only access). If online AI is on, file names found may also be passed to Gemini as tool results.</string>
+    <string name="laho_ai_privacy_f_drive_to">Google Drive API (and Gemini only as described above)</string>
+    <string name="laho_ai_privacy_f_voice">Voice button</string>
+    <string name="laho_ai_privacy_f_voice_sent">Speech is recognised by the speech service installed on your phone (usually Google), not by LaHo. The recognised text then follows the rules above.</string>
+    <string name="laho_ai_privacy_f_voice_to">Android speech recognizer</string>
+    <string name="laho_ai_off_note">Online AI (Gemini) is off: offline commands only.</string>
+    <string name="laho_ai_off_details">Details / turn on</string>
 </resources>

@@ -202,6 +202,12 @@
             android:label="@string/laho_assistant_title"
             android:theme="@style/Theme.Rhythm"
             android:windowSoftInputMode="adjustResize" />
+        <!-- LaHo: online AI privacy switch and explanation page -->
+        <activity
+            android:name="vn.laho.musicplayer.privacy.AiPrivacyActivity"
+            android:exported="false"
+            android:label="@string/laho_ai_privacy_title"
+            android:theme="@style/Theme.Rhythm" />
 
         <activity
             android:name=".activities.MainActivity"

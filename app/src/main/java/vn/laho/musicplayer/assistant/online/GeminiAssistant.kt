@@ -65,7 +65,8 @@ class FirebaseModelBackend(val modelName: String) : ModelBackend {
  *    to rephrase it. A synthetic model turn is appended to the history so the conversation
  *    stays valid (every function call is still followed by its response).
  *
- * Only the user's text, the library summary (artists, genres) and tool results are sent.
+ * Only the user's text, the capped library summary ([vn.laho.musicplayer.privacy.LibrarySummary]) and
+ * tool results are sent; never audio, file paths or URIs. Off unless the privacy switch is on.
  */
 class GeminiAssistant(
     private val backend: ModelBackend,
@@ -155,22 +156,7 @@ class GeminiAssistant(
         val overview = tools.execute(ToolCall("get_library_overview", mapOf("limit" to SUMMARY_LIMIT)))
         val text = if (!overview.success) {
             "Thư viện nhạc: ${overview.message}"
-        } else buildString {
-            append("Thư viện nhạc trên máy: ${overview.data["songCount"]} bài.")
-            (overview.data["topGenres"] as? List<*>)?.takeIf { it.isNotEmpty() }
-                ?.let { append("\nThể loại: ${it.joinToString(", ")}.") }
-                ?: append("\nThể loại: (không có thông tin thể loại).")
-            (overview.data["topArtists"] as? List<*>)?.takeIf { it.isNotEmpty() }
-                ?.let { append("\nNghệ sĩ: ${it.joinToString(", ")}.") }
-            (overview.data["sampleTitles"] as? List<*>)?.takeIf { it.isNotEmpty() }
-                ?.let { append("\nVài bài mẫu: ${it.take(SAMPLE_TITLES).joinToString("; ")}.") }
-            (overview.data["moodIndexed"] as? Number)?.toInt()?.let { n ->
-                append(
-                    if (n > 0) "\nChỉ mục tâm trạng: đã phân tích $n/${overview.data["songCount"]} bài (dùng play_by_mood)."
-                    else "\nChỉ mục tâm trạng: chưa có (play_by_mood chưa dùng được).",
-                )
-            }
-        }
+        } else vn.laho.musicplayer.privacy.LibrarySummary.format(overview.data)
         librarySummary = text
         summaryAt = now
         return text
@@ -212,8 +198,7 @@ class GeminiAssistant(
         private const val MAX_TOOL_ROUNDS = 5
         private const val MAX_HISTORY = 20
         private const val SUMMARY_TTL_MS = 5 * 60_000L
-        private const val SUMMARY_LIMIT = 15
-        private const val SAMPLE_TITLES = 10
+        private const val SUMMARY_LIMIT = vn.laho.musicplayer.privacy.LibrarySummary.MAX_ARTISTS
 
         /** Tools whose successful result is a complete answer (no rephrasing round needed). */
         private val ACTION_TOOLS = setOf("playback_control", "set_volume", "search_and_play", "get_now_playing", "play_by_mood")
@@ -249,9 +234,13 @@ class GeminiAssistant(
             - Tính năng chưa có (ví dụ hẹn giờ tắt): nói rõ là chưa hỗ trợ, không gọi công cụ.
         """.trimIndent()
 
-        /** Returns null when this build has no Firebase configuration. */
-        fun createOrNull(context: Context, modelName: String = DEFAULT_MODEL): GeminiAssistant? =
-            if (LahoFirebase.ensure(context)) GeminiAssistant(FirebaseModelBackend(modelName)) else null
+        /** Returns null when the user switched online AI off or this build has no Firebase configuration. */
+        fun createOrNull(
+            context: Context,
+            modelName: String = DEFAULT_MODEL,
+            allowed: Boolean = vn.laho.musicplayer.privacy.AiPrivacySettings.get(context).isOnlineEnabled(),
+        ): GeminiAssistant? =
+            if (allowed && LahoFirebase.ensure(context)) GeminiAssistant(FirebaseModelBackend(modelName)) else null
 
         internal fun declarationOf(tool: AssistantTool): FunctionDeclaration = FunctionDeclaration(
             name = tool.name,

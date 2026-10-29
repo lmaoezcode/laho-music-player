@@ -34,10 +34,14 @@ class MoodCommand(private val context: Context, private val store: MoodStore) : 
     }
 
     private suspend fun index(chat: ChatSink) {
-        val progressAt = chat.post("Đang lập chỉ mục tâm trạng… (gõ /stop để dừng, chạy lại sẽ tiếp tục)")
+        val llmAllowed = vn.laho.musicplayer.privacy.AiPrivacySettings.get(context).isOnlineEnabled()
+        val progressAt = chat.post(
+            "Đang lập chỉ mục tâm trạng… (gõ /stop để dừng, chạy lại sẽ tiếp tục)" +
+                if (llmAllowed) "" else " AI online đang tắt: chỉ phân tích âm thanh trên máy, bỏ qua bước Gemini.",
+        )
         val started = System.currentTimeMillis()
         try {
-            val report = AndroidMoodIndexing.indexer(context, store).run { p ->
+            val report = AndroidMoodIndexing.indexer(context, store, allowLlm = llmAllowed).run { p ->
                 val text = when (p.stage) {
                     IndexProgress.Stage.AUDIO -> "Phân tích âm thanh ${p.done + 1}/${p.total}: ${p.current.orEmpty()}"
                     IndexProgress.Stage.LLM -> "Gemini phân loại ${p.done}/${p.total} bài…"
@@ -48,7 +52,7 @@ class MoodCommand(private val context: Context, private val store: MoodStore) : 
             val secs = (System.currentTimeMillis() - started) / 1000
             val summary = "Chỉ mục tâm trạng xong sau ${secs}s: ${report.indexedWithMood}/${report.songs} bài có tâm trạng. " +
                 "Âm thanh: ${report.analysed} bài mới phân tích, ${report.decodeFailures} bài không giải mã được. " +
-                "Gemini: ${report.classified} bài phân loại" +
+                (if (llmAllowed) "Gemini: ${report.classified} bài phân loại" else "Gemini: bỏ qua (AI online đang tắt)") +
                 (if (report.llmFailures > 0) ", ${report.llmFailures} bài lỗi (chạy lại /index để thử lại)." else ".") +
                 LlmErrors.hint(report.lastLlmError) +
                 " Thử: \"bật nhạc buồn\", \"nhạc tập gym\"."
