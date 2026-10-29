@@ -109,3 +109,14 @@ added by LaHo Music Player should carry their own SPDX header with
   Spotify search, Deezer, Lyrically/iTunes, BetterLyrics, Wikipedia, Apple Music canvas and
   album descriptions) and removed the hardcoded Apple Music token from `app/build.gradle.kts`.
   LRCLIB lyrics and LaHo's MusicBrainz lookup remain.
+- 2026-10-29: offline Vietnamese voice input (`vn.laho.musicplayer.voice`). Vosk
+  (`com.alphacephei:vosk-android` 0.3.75, Apache-2.0, with JNA 5.18.1, Apache-2.0 / LGPL-2.1+) runs the
+  speech recognition on the phone. The model `vosk-model-small-vn-0.4` (Apache-2.0, Alpha Cephei)
+  is NOT bundled: the user downloads it from alphacephei.com on request (size warning, MD5 and size
+  check, stored in the app's private files directory). Recogniser order: Vosk offline, then the
+  system recogniser (`RecognizerIntent`), then the keyboard; hold-to-talk or tap-to-toggle with a
+  live partial preview in the chat input. Entry points outside Settings: a microphone button in
+  Rhythm's home header and player screen (one call each in `HomeScreen.kt` and `PlayerScreen.kt`)
+  and the static app shortcut "Hỏi LaHo" (`xml/laho_shortcuts.xml`), all opening `AssistantActivity`
+  with `EXTRA_START_VOICE`. New permission `RECORD_AUDIO` (asked at first use). Evaluation:
+  `docs/thesis/data/voice_commands_template.csv`, `docs/thesis/scripts/eval_voice.py`.

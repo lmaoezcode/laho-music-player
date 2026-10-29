@@ -250,6 +250,9 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.kotlinx.serialization.json)
 
+    // LaHo: offline Vietnamese speech recognition (Vosk, Apache-2.0); the model is downloaded on demand
+    implementation(libs.vosk.android)
+
     // LaHo: bit-perfect USB DAC driver (third_party/decent-usb-audio, MIT)
     implementation(project(":decent-usb-audio-wrapper-media3"))
 

@@ -68,6 +68,8 @@ See [FORK_NOTICE.md](FORK_NOTICE.md) for the full list of changes.
 | [Rhythm](https://github.com/cromaguy/Rhythm) - the base application | Anjishnu Nandi and contributors | GPL-3.0 |
 | [decent-player](https://github.com/neonteamcc/decent-player) USB audio driver (`third_party/decent-usb-audio`) | neonteamcc | MIT |
 | [libFLAC / xiph flac](https://github.com/xiph/flac) 1.5.0 (`third_party/flac`) | Xiph.Org Foundation | BSD-3-Clause |
+| [Vosk](https://github.com/alphacep/vosk-api) speech recognition (`com.alphacephei:vosk-android` 0.3.75) and [JNA](https://github.com/java-native-access/jna) 5.18.1 | Alpha Cephei Inc; JNA contributors | Apache-2.0; JNA Apache-2.0 / LGPL-2.1+ |
+| Vosk Vietnamese model `vosk-model-small-vn-0.4` (downloaded on demand, not bundled in the APK) | Alpha Cephei Inc | Apache-2.0 |
 | [AndroidX Media3](https://github.com/androidx/media) (ExoPlayer, session, UI) | Google | Apache-2.0 |
 | [Jellyfin Media3 FFmpeg decoder](https://github.com/jellyfin/jellyfin-androidx-media) (bundles FFmpeg) | Jellyfin contributors / FFmpeg project | Apache-2.0 wrapper; FFmpeg under LGPL-2.1+ |
 | Other libraries | see *Settings > About > Open source libraries* in the app | various |

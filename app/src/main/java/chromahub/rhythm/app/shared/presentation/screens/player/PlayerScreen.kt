@@ -919,6 +919,7 @@ fun PlayerScreen(
             modifier = modifier
         )
     }
+    vn.laho.musicplayer.voice.ui.AssistantMicButton(Modifier.align(Alignment.TopEnd)) // LaHo: voice assistant
 
     AnimatedVisibility(
         visible = showFullScreenLyrics,

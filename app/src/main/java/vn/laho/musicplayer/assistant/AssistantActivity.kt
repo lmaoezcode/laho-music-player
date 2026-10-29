@@ -272,12 +272,8 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, v
     var input by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    val speechLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val spoken = result.data
-            ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            ?.firstOrNull()
-        if (!spoken.isNullOrBlank()) viewModel.send(spoken)
-    }
+    // LaHo voice: Vosk offline → system recogniser → keyboard (vn.laho.musicplayer.voice)
+    val voice = vn.laho.musicplayer.voice.ui.rememberVoiceInput(onResult = viewModel::send)
 
     val driveConsent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
         viewModel.onDriveConsentResult(result.data)
@@ -288,17 +284,7 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, v
         driveConsent.launch(IntentSenderRequest.Builder(intent.intentSender).build())
     }
 
-    fun startSpeech() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN")
-            .putExtra(RecognizerIntent.EXTRA_PROMPT, "Nói lệnh cho LaHo")
-        try {
-            speechLauncher.launch(intent)
-        } catch (e: ActivityNotFoundException) {
-            viewModel.messages += ChatMessage(false, "Máy không có trình nhận dạng giọng nói.")
-        }
-    }
+    fun startSpeech() = voice.start()
 
     LaunchedEffect(voiceRequest) {
         if (voiceRequest > 0 && !viewModel.busy) startSpeech()
@@ -333,6 +319,8 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, v
                 items(viewModel.messages) { MessageBubble(it) }
             }
 
+            vn.laho.musicplayer.voice.ui.VoiceModelCard(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+
             SuggestCard(
                 preview = viewModel.suggestPreview,
                 enabled = !viewModel.busy,
@@ -359,21 +347,21 @@ private fun AssistantScreen(viewModel: AssistantViewModel, onBack: () -> Unit, v
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 OutlinedTextField(
-                    value = input,
-                    onValueChange = { input = it },
-                    modifier = Modifier.weight(1f),
+                    value = voice.preview(input),
+                    onValueChange = { if (!voice.listening) input = it },
+                    modifier = Modifier.weight(1f).then(voice.inputModifier),
                     placeholder = { Text("Nhập lệnh…") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(onSend = { viewModel.send(input); input = "" }),
                 )
                 Spacer(Modifier.width(8.dp))
-                OutlinedButton(
-                    onClick = ::startSpeech,
+                vn.laho.musicplayer.voice.ui.VoiceButton(
+                    voice = voice,
                     enabled = !viewModel.busy,
                     // LaHo TV: D-pad starts on the mic button
                     modifier = Modifier.tvInitialFocus(),
-                ) { Text("Nói") }
+                )
                 Spacer(Modifier.width(8.dp))
                 Button(
                     onClick = { viewModel.send(input); input = "" },

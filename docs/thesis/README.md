@@ -111,3 +111,13 @@ not; hits on songs the user would have played anyway do not prove that a
 suggestion was better, so also report the qualitative table in
 `suggest_by_bucket.csv`. An online study (accepted/skipped suggestions) is
 future work.
+
+## Voice (Vosk vs system recogniser)
+
+Copy `data/voice_commands_template.csv`, read each command aloud once per engine (Vosk offline with the model installed; the system recogniser with the model removed or in airplane mode off) and fill `engine`, `recognised_text` (the text the app shows in the chat) and `correct` (1/0). Then:
+
+```
+python docs/thesis/scripts/eval_voice.py voice_commands.csv --out voice_eval_out
+```
+
+It prints exact-match rate, word error rate and command success per engine.

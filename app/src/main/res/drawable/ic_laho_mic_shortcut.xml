@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-FileCopyrightText: 2026 LamHoang (LaHo Music Player) -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Material "mic" glyph (Apache-2.0) on a round disc, for the "Hỏi LaHo" shortcut -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FF6750A4"
+        android:pathData="M24,24m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M24,28c2.21,0 3.99,-1.79 3.99,-4L28,14c0,-2.21 -1.79,-4 -4,-4s-4,1.79 -4,4v10c0,2.21 1.79,4 4,4zM31.3,24c0,4 -3.4,6.8 -7.3,6.8s-7.3,-2.8 -7.3,-6.8L14,24c0,4.7 3.7,8.6 8.3,9.3L22.3,38h3.4v-4.7C30.3,32.6 34,28.7 34,24z" />
+</vector>

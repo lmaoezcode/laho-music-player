@@ -579,6 +579,7 @@ fun HomeScreen(
                     )
                 )
             }
+            add(vn.laho.musicplayer.voice.ui.assistantHeaderAction(context)) // LaHo: voice assistant
             if (showSettings) {
                 add(
                     HeaderAction(

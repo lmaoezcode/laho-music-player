@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-FileCopyrightText: 2026 LamHoang (LaHo Music Player) -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="laho_ask"
+        android:enabled="true"
+        android:icon="@drawable/ic_laho_mic_shortcut"
+        android:shortcutShortLabel="@string/laho_shortcut_short"
+        android:shortcutLongLabel="@string/laho_shortcut_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="vn.laho.musicplayer.debug"
+            android:targetClass="vn.laho.musicplayer.assistant.AssistantActivity">
+            <extra
+                android:name="vn.laho.musicplayer.extra.START_VOICE"
+                android:value="true" />
+        </intent>
+    </shortcut>
+</shortcuts>
