@@ -9,9 +9,9 @@ name: LaHo CI
 
 on:
   push:
-    branches: [ "laho", "spike/**", "claude/**" ]
+    branches: [ "laho", "rc/**", "spike/**", "claude/**", "feat/**", "refactor/**", "chore/**", "integration/**" ]
   pull_request:
-    branches: [ "laho", "spike/**", "claude/**" ]
+    branches: [ "laho", "rc/**" ]
   workflow_dispatch:
 
 permissions:
