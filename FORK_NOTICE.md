@@ -61,3 +61,7 @@ contributors.
 Original copyright headers (SPDX lines) in source files must be kept. New files
 added by LaHo Music Player should carry their own SPDX header with
 `GPL-3.0-or-later`.
+- 2026-10-29: disabled unofficial third-party services in both flavors (YouTube Music,
+  Spotify search, Deezer, Lyrically/iTunes, BetterLyrics, Wikipedia, Apple Music canvas and
+  album descriptions) and removed the hardcoded Apple Music token from `app/build.gradle.kts`.
+  LRCLIB lyrics and LaHo's MusicBrainz lookup remain.

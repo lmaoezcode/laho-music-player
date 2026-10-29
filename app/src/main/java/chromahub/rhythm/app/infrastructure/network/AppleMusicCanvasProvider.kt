@@ -180,6 +180,7 @@ object AppleMusicCanvasProvider {
         album: String? = null,
         storefront: String = "us",
     ): CanvasArtwork? = withContext(Dispatchers.IO) {
+        if (!chromahub.rhythm.app.BuildConfig.ENABLE_APPLE_MUSIC) return@withContext null // LaHo: disabled
         val key = cacheKey("song", song, artist, album ?: "", storefront)
         cache[key]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { return@withContext it.value }
 
@@ -208,6 +209,7 @@ object AppleMusicCanvasProvider {
         artist: String,
         storefront: String = "us",
     ): CanvasArtwork? = withContext(Dispatchers.IO) {
+        if (!chromahub.rhythm.app.BuildConfig.ENABLE_APPLE_MUSIC) return@withContext null // LaHo: disabled
         val key = cacheKey("album", album, artist, storefront)
         cache[key]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { return@withContext it.value }
 
@@ -223,6 +225,7 @@ object AppleMusicCanvasProvider {
         artist: String,
         storefront: String = "us",
     ): String? = withContext(Dispatchers.IO) {
+        if (!chromahub.rhythm.app.BuildConfig.ENABLE_APPLE_MUSIC) return@withContext null // LaHo: disabled
         try {
             val query = if (album.contains(artist, ignoreCase = true)) album else "$artist $album"
             val token = getOrFetchToken()
@@ -285,6 +288,7 @@ object AppleMusicCanvasProvider {
         storefront: String,
         type: String,
     ): CanvasArtwork? = withContext(Dispatchers.IO) {
+        if (!chromahub.rhythm.app.BuildConfig.ENABLE_APPLE_MUSIC) return@withContext null // LaHo: disabled
         try {
             AppleCanvasLogger.d("searching for $type: $term (album: $album) in $storefront")
             var query = if (term.contains(artist, ignoreCase = true)) term else "$artist $term"
@@ -475,6 +479,7 @@ object AppleMusicCanvasProvider {
         titleOverride: String? = null,
         artistOverride: String? = null,
     ): CanvasArtwork? = withContext(Dispatchers.IO) {
+        if (!chromahub.rhythm.app.BuildConfig.ENABLE_APPLE_MUSIC) return@withContext null // LaHo: disabled
         if (albumId.startsWith("pl.")) return@withContext null
         try {
             AppleCanvasLogger.d("fetching album $albumId")
