@@ -33,27 +33,45 @@ class ToolRegistry(tools: List<AssistantTool>) {
     }
 
     companion object {
-        private fun driveTools(drive: vn.laho.musicplayer.drive.DriveGateway?): Array<AssistantTool?> {
+        private fun driveTools(drive: vn.laho.musicplayer.drive.DriveGateway?, memory: AgentMemory): Array<AssistantTool?> {
             if (drive == null) return emptyArray()
             val session = DriveSession()
-            return arrayOf(DriveSearchTool(drive, session), DriveDownloadTool(drive, session))
+            return arrayOf(DriveSearchTool(drive, session), DriveDownloadTool(drive, session, memory = memory))
         }
 
-        /** [moodIndex] enables play_by_mood (LaHo mood index); null when not available. */
+        /**
+         * [moodIndex] enables play_by_mood (LaHo mood index); the other optional gateways
+         * enable the multi-step agent tools (queue, playlists, sleep timer). Null = not available.
+         */
         fun default(
             player: PlayerGateway,
             moodIndex: vn.laho.musicplayer.mood.MoodIndex? = null,
             drive: vn.laho.musicplayer.drive.DriveGateway? = null,
-        ) = ToolRegistry(
-            listOfNotNull(
-                PlaybackControlTool(player),
-                SetVolumeTool(player),
-                SearchAndPlayTool(player),
-                NowPlayingTool(player),
-                LibraryOverviewTool(player, moodIndex),
-                moodIndex?.let { PlayByMoodTool(player, it) },
-                *driveTools(drive),
-            ),
-        )
+            queue: QueueGateway? = null,
+            playlists: PlaylistGateway? = null,
+            sleepTimer: SleepTimerGateway? = null,
+            memory: AgentMemory = AgentMemory(),
+            random: kotlin.random.Random = kotlin.random.Random.Default,
+        ): ToolRegistry {
+            val picker = SongPicker(player, moodIndex, random)
+            return ToolRegistry(
+                listOfNotNull(
+                    PlaybackControlTool(player),
+                    SetVolumeTool(player),
+                    SearchAndPlayTool(player),
+                    NowPlayingTool(player),
+                    LibraryOverviewTool(player, moodIndex),
+                    moodIndex?.let { PlayByMoodTool(player, it, random) },
+                    *driveTools(drive, memory),
+                    playlists?.let { CreatePlaylistTool(it, picker, memory) },
+                    playlists?.let { PlayPlaylistTool(it, player, memory, random) },
+                    queue?.let { QueueAddTool(it, picker) },
+                    queue?.let { QueueClearTool(it) },
+                    queue?.takeIf { drive != null }?.let { PlayDownloadedTool(it, memory) },
+                    sleepTimer?.let { SleepTimerTool(it) },
+                    PlanStepsTool(),
+                ),
+            )
+        }
     }
 }

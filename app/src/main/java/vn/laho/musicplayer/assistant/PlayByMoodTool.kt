@@ -47,20 +47,8 @@ class PlayByMoodTool(
         if (profiles.isEmpty()) {
             return ToolResult.fail("Chưa có chỉ mục tâm trạng. Gõ /index trong màn trợ lý để phân tích thư viện.")
         }
-        val library = player.librarySongs().associateBy { it.id }
-        val ranked = profiles
-            .filter { it.songId in library }
-            .map { it to distance(it, valence, arousal, mood) }
-            .sortedBy { it.second }
-        if (ranked.isEmpty()) return ToolResult.fail("Chỉ mục tâm trạng không khớp thư viện hiện tại; hãy chạy lại /index.")
-
-        // Prefer songs reasonably close on the mood plane; for longer queues take a slightly
-        // larger pool of the closest and shuffle it, so repeating a request gives variety.
-        val close = ranked.filter { it.second <= MAX_DISTANCE }
-        val candidates = if (close.size >= limit) close else ranked
-        val poolSize = if (limit >= 10) limit * 3 / 2 else limit
-        val pool = candidates.take(poolSize).map { it.first }.shuffled(random).take(limit)
-        val songs = pool.mapNotNull { library[it.songId] }
+        val songs = MoodSelection.select(profiles, player.librarySongs(), valence, arousal, mood, limit, random)
+        if (songs.isEmpty()) return ToolResult.fail("Chỉ mục tâm trạng không khớp thư viện hiện tại; hãy chạy lại /index.")
         player.playSongs(songs, 0)
 
         val what = mood?.let { "\"${it.label}\"" } ?: "bạn yêu cầu"
@@ -71,8 +59,47 @@ class PlayByMoodTool(
         )
     }
 
+    internal fun distance(p: MoodProfile, valence: Double?, arousal: Double?, mood: Mood?): Double =
+        MoodSelection.distance(p, valence, arousal, mood)
+
+    private companion object {
+        const val DEFAULT_LIMIT = 25
+    }
+}
+
+/** Mood-plane ranking shared by play_by_mood, create_playlist and queue_add. */
+object MoodSelection {
+    private const val LABEL_BONUS = 0.35
+    private const val MAX_DISTANCE = 0.9
+
+    /**
+     * Songs of [library] closest to the requested mood. Prefers songs reasonably close on the
+     * mood plane; for longer lists takes a slightly larger pool and shuffles it, so repeating
+     * a request gives variety. Empty when no profile matches the library.
+     */
+    fun select(
+        profiles: List<MoodProfile>,
+        library: List<LibrarySong>,
+        valence: Double?,
+        arousal: Double?,
+        mood: Mood?,
+        limit: Int,
+        random: Random = Random.Default,
+    ): List<LibrarySong> {
+        val byId = library.associateBy { it.id }
+        val ranked = profiles
+            .filter { it.songId in byId }
+            .map { it to distance(it, valence, arousal, mood) }
+            .sortedBy { it.second }
+        if (ranked.isEmpty()) return emptyList()
+        val close = ranked.filter { it.second <= MAX_DISTANCE }
+        val candidates = if (close.size >= limit) close else ranked
+        val poolSize = if (limit >= 10) limit * 3 / 2 else limit
+        return candidates.take(poolSize).map { it.first }.shuffled(random).take(limit).mapNotNull { byId[it.songId] }
+    }
+
     /** Euclidean distance on the mood plane, with a bonus for an exact label match. */
-    internal fun distance(p: MoodProfile, valence: Double?, arousal: Double?, mood: Mood?): Double {
+    fun distance(p: MoodProfile, valence: Double?, arousal: Double?, mood: Mood?): Double {
         var sum = 0.0
         // Unknown coordinates count as neutral (0) with a small penalty.
         if (valence != null) sum += sq((p.valence ?: 0.0) - valence) + if (p.valence == null) 0.15 else 0.0
@@ -82,10 +109,4 @@ class PlayByMoodTool(
     }
 
     private fun sq(x: Double) = x * x
-
-    private companion object {
-        const val DEFAULT_LIMIT = 25
-        const val LABEL_BONUS = 0.35
-        const val MAX_DISTANCE = 0.9
-    }
 }

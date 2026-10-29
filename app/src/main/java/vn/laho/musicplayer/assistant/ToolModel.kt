@@ -40,7 +40,19 @@ interface AssistantTool {
     val parameters: List<ToolParameter>
 
     suspend fun execute(args: Map<String, Any?>): ToolResult
+
+    /** Short Vietnamese label for multi-step progress ("Tìm trên Drive"). */
+    fun progressLabel(args: Map<String, Any?>): String = DEFAULT_LABELS[name] ?: name
 }
+
+private val DEFAULT_LABELS = mapOf(
+    "playback_control" to "Điều khiển phát nhạc",
+    "set_volume" to "Chỉnh âm lượng",
+    "search_and_play" to "Tìm và phát",
+    "get_now_playing" to "Xem bài đang phát",
+    "get_library_overview" to "Xem thư viện",
+    "play_by_mood" to "Phát nhạc theo tâm trạng",
+)
 
 /** Reads an integer argument that may arrive as Int, Long, Double (JSON) or String. */
 internal fun Map<String, Any?>.intArg(key: String): Int? = when (val v = this[key]) {

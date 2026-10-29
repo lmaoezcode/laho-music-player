@@ -96,7 +96,10 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         vn.laho.musicplayer.drive.MediaStoreTrackSaver(app),
     )
     private val engine = AssistantEngine(
-        ToolRegistry.default(gateway, moodStore.asIndex(), drive),
+        ToolRegistry.default(
+            gateway, moodStore.asIndex(), drive,
+            queue = gateway, playlists = gateway, sleepTimer = gateway,
+        ),
         online = gemini,
     )
 
@@ -162,7 +165,17 @@ class AssistantViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             val started = System.nanoTime()
-            val reply = engine.handle(trimmed)
+            val lines = mutableListOf<String>()
+            var progressIndex = -1
+            val reply = engine.handle(trimmed) { p ->
+                // Single-step requests need no progress; show it from the second step on.
+                val line = p.line()
+                if (p.state == AgentProgress.State.RUNNING) lines += line else if (lines.isNotEmpty()) lines[lines.lastIndex] = line
+                if (p.step > 1 || (p.total ?: 1) > 1) {
+                    val text = lines.joinToString("\n")
+                    if (progressIndex < 0) progressIndex = chat.post(text) else chat.update(progressIndex, text)
+                }
+            }
             val ms = (System.nanoTime() - started) / 1_000_000
             val rounds = if (reply.source == AssistantReply.Source.OFFLINE) 0 else gemini?.lastModelRounds ?: 0
             Log.i(

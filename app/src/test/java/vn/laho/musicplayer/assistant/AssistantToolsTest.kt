@@ -160,7 +160,7 @@ class AssistantEngineTest {
         assertEquals(AssistantReply.Source.NONE, offlineOnly.handle("tôi đang buồn").source)
 
         var asked: String? = null
-        val withOnline = AssistantEngine(ToolRegistry.default(p), online = { text, _ ->
+        val withOnline = AssistantEngine(ToolRegistry.default(p), online = { text, _, _ ->
             asked = text
             AssistantReply("ok", AssistantReply.Source.ONLINE)
         })

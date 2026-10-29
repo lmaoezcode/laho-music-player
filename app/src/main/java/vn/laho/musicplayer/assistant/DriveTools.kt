@@ -55,6 +55,9 @@ class DriveSearchTool(private val drive: DriveGateway, private val session: Driv
         ToolParameter("limit", ToolParameter.Type.INTEGER, "Số kết quả tối đa (mặc định 8, tối đa 20)"),
     )
 
+    override fun progressLabel(args: Map<String, Any?>) =
+        "Tìm" + (args.stringArg("query")?.let { " \"${DriveRules.safeName(it)}\"" } ?: "") + " trên Drive"
+
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
         val query = args.stringArg("query") ?: return ToolResult.fail("Cần 'query' (tên bài cần tìm).")
         val limit = (args.intArg("limit") ?: DEFAULT_LIMIT).coerceIn(1, MAX_LIMIT)
@@ -88,6 +91,7 @@ class DriveDownloadTool(
     private val drive: DriveGateway,
     private val session: DriveSession,
     private val maxBytes: Long = DriveRules.MAX_DOWNLOAD_BYTES,
+    private val memory: AgentMemory? = null,
 ) : AssistantTool {
     override val name = "drive_download"
     override val description =
@@ -97,6 +101,8 @@ class DriveDownloadTool(
         ToolParameter("file_id", ToolParameter.Type.STRING, "Id tệp lấy từ drive_search", required = true),
         ToolParameter("confirmed", ToolParameter.Type.STRING, "true chỉ sau khi người dùng đã xác nhận tải", enumValues = listOf("true", "false")),
     )
+
+    override fun progressLabel(args: Map<String, Any?>) = "Tải về từ Drive"
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
         val confirmed = args.boolArg("confirmed")
@@ -134,6 +140,8 @@ class DriveDownloadTool(
             if (e is kotlin.coroutines.cancellation.CancellationException) throw e
             return driveFailure(e)
         }
+        val title = saved.displayName.substringBeforeLast('.')
+        saved.uri?.let { memory?.lastDownload = AgentMemory.Download(title, it) }
         return ToolResult.ok(
             "Đã tải ${describe(file)} vào Music/LaHo. Thư viện sẽ tự cập nhật; gõ /index để phân tích tâm trạng bài mới.",
             mapOf("downloaded" to true, "file_id" to file.id, "name" to saved.displayName),
